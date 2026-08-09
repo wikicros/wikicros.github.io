@@ -1,0 +1,1193 @@
+<html>
+<head>
+    <meta charset="utf8">
+    <style>
+        body {
+          margin: 0;
+      }
+        table {
+            float: left;
+            border-spacing: 0;
+        }
+        td {
+            padding: 0;
+        }
+        .cross {
+            font-size: small;
+            text-align: center;
+            width: 22px;
+	        height: 23px;
+            border: solid white 1px;
+        }
+        .crypto {
+            font-size: small;
+            padding: 0;
+	    padding-bottom: 1px;
+            margin: 0;
+            cursor: pointer;
+            text-align: center;
+            border: 0;
+            width: 25px;
+            height: 20px;
+        }
+        #ahelp {
+            float: left;
+            cursor: pointer;
+            margin-right: 0.5em;
+            font-size: small;
+            padding: 0;
+        }
+        #expand {
+            float: right;
+            color: green;
+            font-size: small;
+            display: none;
+            height: initial;
+        }
+        #photo {
+            font-size: large;
+            cursor: pointer;
+            display: none;
+        }
+        #shuffle {
+            cursor: pointer;
+	    color: indianred;
+        }
+        #results {
+            height: 90%;
+            float: right;
+            font-size: small;
+            overflow-y: scroll;
+          background: whitesmoke;
+        }
+        #wcont {
+            opacity: 0;
+	    width: 1px;
+	    height: 1px;
+	    overflow: hidden;
+        }
+        #keyboard {
+            opacity: 0;
+            width: 1px;
+            height: 1px;
+            position: absolute;
+        }
+        #guess {
+            font-size: large;
+            cursor: pointer;
+            text-align: center;
+            display: none;
+        }
+        #clues {
+            font-size: small;
+            color: gray;
+            float: right;
+            text-align: right;
+            background: whitesmoke;
+            width: 140px;
+            height: 93%;
+            overflow: scroll;
+        }
+        #checks {
+            font-size: large;
+            color: silver;
+            float: right;
+            margin-top: 0.5em;
+            margin-right: 40%;
+        }
+        #drop_down {
+            padding: 1em;
+            position: absolute;
+            display: none;
+            background: lavender;
+            cursor: pointer;
+            list-style-type: none;
+            box-shadow: 5px 5px 3px 0px rgba(0,0,0,0.5);
+        }
+        #congrats {
+            text-shadow: 10px 10px 5px rgba(0,0,0,0.5);
+            font-size: 250px;
+            color: darkolivegreen;
+            position: absolute;
+            top: 150px;
+            left: 250px;
+	    display: none;
+        }
+    </style>
+    <script type="text/javascript">cookieChoices = {};</script>
+</head>
+<body>
+    <span onclick="window.open('https://wikicros.github.io', '_blank');" title = "Homepage" style = "cursor: pointer; font-weight: bolder; font-size: large">WikiCros</span>
+    <button id="ahelp"></button>
+    <i><strong id="wtitle" title="Wikipedia page" style="float: right"></strong></i>
+    <hr />
+    <table id="00"></table>
+    <div id="wcont" contenteditable="true"></div>
+    <div id="aF" style="display:none">
+        <div id="results">
+            <span id="photo">📷</span>
+            <div style="display:inline-block"><img id="thumbnail" src="" style="display:none;border:dotted silver 1px;max-width:96%" /></div>
+            <div id="description"></div>
+            <div id="more"></div>
+            <button id="expand">▼</button>
+            <br />
+	    <span id="shuffle"></span>
+        </div>
+        <input type="text" id="keyboard" />
+    </div>
+    <div id="kF" style="display:none">
+        <div id="clues"></div>
+        <span id="checks"></span>
+        <input type="text" id="guess" readonly />
+    </div>
+    <span id="congrats">✓</span>
+    <script type="text/javascript">
+        var links, stops, freqs, smax, qcat;
+        var puncts = /[!--:;=?@\[\]^_`{-~\u00A1\u00A7\u00AB\u00B6\u00B7\u00BB\u00BF\u037E\u0387\u055A-\u055F\u0589\u058A\u05BE\u05C0\u05C3\u05C6\u05F3\u05F4\u0609\u060A\u060C\u060D\u061B\u061E\u061F\u066A-\u066D\u06D4\u0700-\u070D\u07F7-\u07F9\u0830-\u083E\u085E\u0964\u0965\u0970\u0AF0\u0DF4\u0E4F\u0E5A\u0E5B\u0F04-\u0F12\u0F14\u0F3A-\u0F3D\u0F85\u0FD0-\u0FD4\u0FD9\u0FDA\u104A-\u104F\u10FB\u1360-\u1368\u1400\u166D\u166E\u169B\u169C\u16EB-\u16ED\u1735\u1736\u17D4-\u17D6\u17D8-\u17DA\u1800-\u180A\u1944\u1945\u1A1E\u1A1F\u1AA0-\u1AA6\u1AA8-\u1AAD\u1B5A-\u1B60\u1BFC-\u1BFF\u1C3B-\u1C3F\u1C7E\u1C7F\u1CC0-\u1CC7\u1CD3\u2010-\u2027\u2030-\u2043\u2045-\u2051\u2053-\u205E\u207D\u207E\u208D\u208E\u2329\u232A\u2768-\u2775\u27C5\u27C6\u27E6-\u27EF\u2983-\u2998\u29D8-\u29DB\u29FC\u29FD\u2CF9-\u2CFC\u2CFE\u2CFF\u2D70\u2E00-\u2E2E\u2E30-\u2E3B\u3001-\u3003\u3008-\u3011\u3014-\u301F\u3030\u303D\u30A0\u30FB\uA4FE\uA4FF\uA60D-\uA60F\uA673\uA67E\uA6F2-\uA6F7\uA874-\uA877\uA8CE\uA8CF\uA8F8-\uA8FA\uA92E\uA92F\uA95F\uA9C1-\uA9CD\uA9DE\uA9DF\uAA5C-\uAA5F\uAADE\uAADF\uAAF0\uAAF1\uABEB\uFD3E\uFD3F\uFE10-\uFE19\uFE30-\uFE52\uFE54-\uFE61\uFE63\uFE68\uFE6A\uFE6B\uFF01-\uFF03\uFF05-\uFF0A\uFF0C-\uFF0F\uFF1A\uFF1B\uFF1F\uFF20\uFF3B-\uFF3D\uFF3F\uFF5B\uFF5D\uFF5F-\uFF65]+/g;
+		
+        document.getElementById("wcont").innerHTML = '<math><mrow mathcolor=\"red\"><mn>1</mn></mrow></math>';
+        var notFfox = window.getComputedStyle(document.getElementById("wcont").firstChild.firstChild, null).color !== "rgb(255, 0, 0)";
+
+        var ctype = window.location.href.split("t=")[1].split('&')[0] * 1;
+        var lang = "https://" + window.location.href.split("l=")[1].split('&')[0] + ".wikipedia.org/";
+        var query = decodeURI(window.location.href.split("q=")[1]);
+
+        document.getElementById('wtitle').innerHTML = query;
+
+        var red, rContent = function (data) {
+            red = JSON.parse(JSON.stringify(data));
+        };
+        var httpGet = function () {
+            document.getElementById('00').innerHTML = '<img style="opacity:0.1;width:500px" src="icons/wikicros.png" />';
+
+            links = new Array();
+            stops = new Array();
+            freqs = new Array();
+            smax = 0;
+	    qcat = false;
+
+            var scr = lang + "w/api.php?format=json&action=parse&page=" + query + "&prop=headhtml|text|links&callback=rContent";
+
+            var elem = document.createElement('script');
+            elem.setAttribute('src', scr);
+            elem.setAttribute('type', 'text/javascript');
+            document.getElementsByTagName('head')[0].appendChild(elem);
+
+            elem.onload = elem.onreadystatechange = function () {
+                if (!this.readyState || this.readyState === "loaded" || this.readyState === "complete") {
+                    if (red.parse.headhtml['*'].split('<body')[1].indexOf(' ns-14 ') > 0) qcat = true;
+                    query = red.parse.title;
+                    var ls = red.parse.links;
+                    for (var i = 0; i < ls.length; i++) if (ls[i].ns == 0 && ls[i].exists == "") links.push(ls[i]['*']);
+
+                    document.getElementById("wcont").innerHTML = red.parse.text['*'];
+                    var p = document.getElementById("wcont").getElementsByTagName("A");
+                    while (p[0]) p[0].parentNode.removeChild(p[0]);
+
+                    var content = document.getElementById("wcont").textContent.replace(/\\(.)/g, " ").replace(puncts, " ").replace(/\./g, " ").replace(/  +/g, " ").split(' ');
+                    for (var i = 0; i < content.length; i++) {
+                        if (content[i].length == 1) continue;
+                        if (content[i].length < 5 && stops.indexOf(content[i].toLowerCase()) < 0) {
+                            stops.push(content[i].toLowerCase());
+                            freqs.push(1);
+                        }
+                        else freqs[stops.indexOf(content[i].toLowerCase())]++;
+                        smax++;
+                    }
+                    if (ctype) {
+                        document.getElementById("kF").style.display = 'none';
+                        document.getElementById("aF").style.display = 'block';
+                        startA();
+                    }
+                    else {
+                        document.getElementById("aF").style.display = 'none';
+                        document.getElementById("kF").style.display = 'block';
+                        startK();
+                    }
+                }
+            };
+        };
+        document.getElementById("expand").addEventListener("click", function () {
+            document.getElementById("description").style.display = "none";
+            document.getElementById("expand").style.display = "none";
+            document.getElementById("more").style.display = "block";
+        });
+        document.getElementById("photo").addEventListener("click", function () {
+            document.getElementById("thumbnail").style.display = "inline-block";
+        });
+        document.getElementById("aF").addEventListener("click", function () {
+            document.getElementById("keyboard").style.left = event.clientX;
+            document.getElementById("keyboard").style.top = event.clientY;
+	    document.getElementById("keyboard").focus();
+        });
+        httpGet();
+
+        function toUint(txt) {
+	if (lang.indexOf("/hi.") < 0 && lang.indexOf("/si.") < 0 && lang.indexOf("/mr.") < 0 && lang.indexOf("/ml.") < 0 && lang.indexOf("/nqo.") < 0 && lang.indexOf("/ta.") < 0 && lang.indexOf("/or.") < 0 && lang.indexOf("/gu.") < 0 && lang.indexOf("/pa.") < 0 && lang.indexOf("/bn.") < 0 && lang.indexOf("/as.") < 0 && lang.indexOf("/bo.") < 0 && lang.indexOf("/th.") < 0 && lang.indexOf("/lo.") < 0 && lang.indexOf("/my.") < 0 && lang.indexOf("/km.") < 0 && lang.indexOf("/gom.") < 0 && lang.indexOf("/dty.") < 0 && lang.indexOf("/new.") < 0 && lang.indexOf("/ne.") < 0 && lang.indexOf("/bh.") < 0 && lang.indexOf("/mai.") < 0 && lang.indexOf("/sa.") < 0 && lang.indexOf("/te.") < 0 && lang.indexOf("/sat.") < 0 && lang.indexOf("/tcy.") < 0 && lang.indexOf("/kn.") < 0 && lang.indexOf("/bpy.") < 0 && lang.indexOf("/cu.") < 0 && lang.indexOf("/dv.") < 0 && lang.indexOf("/dz.") < 0 && lang.indexOf("/ks.") < 0 && lang.indexOf("/mnw.") < 0 && lang.indexOf("/pi.") < 0 && lang.indexOf("/shn.") < 0 && lang.indexOf("/cdo.") < 0 && lang.indexOf("/din.") < 0 && lang.indexOf("/pnb.") < 0 && lang.indexOf("/hak.") < 0) return [...txt];
+
+	try {
+	    var uint = [];
+	    document.getElementById("wcont").textContent = txt;
+	    document.getElementById("wcont").focus();
+
+	    while (document.getElementById("wcont").textContent != "") {
+                if (document.getElementById("wcont").createTextRange) {
+                    var part = document.getElementById("wcont").createTextRange();
+                    part.move("character", 0);
+                    part.select();
+                }
+	        else if (document.getElementById("wcont").setSelectionRange) {
+                    document.getElementById("wcont").setSelectionRange(0, 0);
+                }
+	        document.execCommand("forwardDelete", false, null);
+		if (txt == document.getElementById("wcont").textContent) {
+	            document.getElementById("keyboard").focus();
+		    return [...txt];
+		}
+		uint.push(txt.replace(document.getElementById("wcont").textContent, ""));
+		txt = document.getElementById("wcont").textContent;
+	    }
+	    document.getElementById("keyboard").focus();
+	    return uint;
+	}
+	catch(err) {
+	    document.getElementById("keyboard").focus();
+	    return [...txt];
+	}
+	}
+
+        function startA() {
+            var ahtml = "";
+            for (var m = 1; m <= 25; m++) {
+                ahtml += '<tr>';
+                for (var n = 1; n <= 25; n++) {
+                    ahtml += '<td id="' + m + '-' + n + '" class="cross"></td>';
+                }
+                ahtml += '</tr>';
+            }
+            document.getElementById("00").innerHTML = ahtml;
+            document.getElementById("ahelp").style.opacity = 0;
+	    document.getElementById("ahelp").style.cursor = "pointer";
+
+            var cat = -1, scr0 = lang + "w/api.php?format=json&action=query&titles=" + query + "&prop=info&callback=rContent";
+
+            if (qcat) {
+                links = new Array();
+                cat = 1;
+	        var cdir = "&cmdir=older";
+	        if (Math.random() > 0.75) cdir = "";
+
+                scr0 = lang + "w/api.php?format=json&action=query&titles=" + query + "&prop=info&list=categorymembers&cmtitle=" + query + "&cmnamespace=0|14&cmlimit=500&cmsort=timestamp" + cdir + "&callback=rContent";
+            }
+            else {
+                cat = 0;
+	        var bdir = "&bldir=descending";
+	        if (Math.random() > 0.5) bdir = "";
+
+                scr0 = lang + "w/api.php?format=json&action=query&titles=" + query + "&prop=info&list=backlinks&bltitle=" + query + "&blnamespace=0&bllimit=500" + bdir +"&callback=rContent";
+            }
+            elem0 = document.createElement('script');
+            elem0.setAttribute('src', scr0);
+            elem0.setAttribute('type', 'text/javascript');
+            document.getElementsByTagName('head')[0].appendChild(elem0);
+
+            elem0.onload = elem0.onreadystatechange = function () {
+                if (!this.readyState || this.readyState === "loaded" || this.readyState === "complete") {
+                    var tds = document.getElementById("00").getElementsByTagName("TD");
+                    for (var key in red.query.pages) {
+                        if (red.query.pages[key].pagelanguagedir == "rtl") {
+                            document.getElementById("00").style.transform = "scaleX(-1)";
+                            for (var i = 0; i < tds.length; i++) tds[i].style.transform = "scaleX(-1)";
+                        }
+                        else {
+                            document.getElementById("00").style.transform = "scaleX(1)";
+                            for (var i = 0; i < tds.length; i++) tds[i].style.transform = "scaleX(1)";
+                        }
+                        document.getElementById("results").style.direction = red.query.pages[key].pagelanguagedir;
+                    }
+                    if (cat >= 0) {
+                        var ls = [];
+                        if (cat == 1 && red.query.categorymembers) ls = red.query.categorymembers;
+                        else if (red.query.backlinks) ls = red.query.backlinks;
+
+                        for (var i = 0; i < ls.length; i++) {
+                            if (ls[i].ns > 0) continue;
+			    else if (links.indexOf(ls[i].title) < 0) links.push(ls[i].title);
+			}
+                    }
+                    var alphabet = "";
+                    var words = new Array();
+                    var redir = new Array();
+                    var wwis = new Array();
+                    var words2 = new Array();
+                    var redir2 = new Array();
+                    var wwis2 = new Array();
+                    var words3 = new Array();
+                    var redir3 = new Array();
+                    var wwis3 = new Array();
+                    var sorts2 = 0;
+                    var sorts3 = 0;
+                    var parts = links.slice(0);
+
+                    while (parts.length > 0) {
+                        var pi = Math.round(Math.random() * (parts.length - 1));
+                        var txt = parts[pi].split(',')[0].split('(')[0].replace(puncts, ' ').replace(/\./g, " ").trim();
+
+                        var p = txt.split(" ");
+                        txt = "";
+                        for (var z = 0; z < p.length; z++) if (p[z].length > 1 && p[z].length >= txt.length && p[z] == p[z].replace(/[0-9/\u00A0-\u00BF]/g, '')) txt = p[z];
+
+                        if (txt != "" && alphabet.indexOf(txt.substring(0, txt.length / 2 + 1).toLowerCase()) < 0) {
+			    var tu = toUint(txt);
+			    if (txt == tu.join('') && tu.length > 1) {
+                                alphabet += txt.toLowerCase() + "#";
+
+                                if (tu.length == 3) {
+                                    words3.push(txt);
+                                    redir3.push(parts[pi].trim());
+                                    wwis3.push(tu);
+                                    sorts3++;
+                                }
+                                else if (tu.length == 2) {
+                                    words2.push(txt);
+                                    redir2.push(parts[pi].trim());
+                                    wwis2.push(tu);
+                                    sorts2++;
+                                }
+                                else {
+                                    words.push(txt);
+                                    redir.push(parts[pi].trim());
+                                    wwis.push(tu);
+                                }
+                            }
+                        }
+                        parts.splice(pi, 1);
+                    }
+                    if (words.length < 50) {
+                        words = words.concat(words3);
+                        redir = redir.concat(redir3);
+                        wwis = wwis.concat(wwis3);
+                    }
+                    if (words.length < 50) {
+                        words = words.concat(words2);
+                        redir = redir.concat(redir2);
+                        wwis = wwis.concat(wwis2);
+                    }
+                    var repeat = 10;
+                    var tries = Math.ceil(words.length / 10);
+		    if (tries > 9) tries = 9;
+		    document.getElementById("ahelp").innerHTML = "🔓<br />" + tries;
+
+                    var wordi, word, x, anagr, horiz;
+                    var backup = new Array();
+                    var matrix = new Array();
+
+                    function american() {
+                        word = wwis.slice(0);
+                        x = word.length - 1;
+                        for (var i = 0; i < 25; i++) {
+                            var mat0 = new Array();
+                            for (var j = 0; j < 25; j++) mat0.push("");
+                            matrix[i] = mat0;
+                        }
+                        do {
+                            wordi = Math.round(Math.random() * x);
+                        }
+                        while (word[wordi].length > 25 - 2);
+                        var y1 = Math.round(Math.random() * (25 - 5)) + 2;
+                        var y2 = Math.round(Math.random() * (25 - 2 - word[wordi].length)) + 1;
+                        for (i = 0; i < word[wordi].length; i++) {
+                            matrix[y1][y2 + i] = word[wordi][i];
+                        }
+                        word[wordi] = word[x];
+                        x--;
+                        var time = 5 * 25;
+                        while (x > 0 & time > 0) {
+                            time--;
+                            wordi = Math.round(Math.random() * x);
+                            if (word[wordi].length < 25 - 1) {
+                                var sums = [0, 0];
+                                var sumb = 0;
+                                var suma;
+                                for (j = 1; j < 25 - word[wordi].length; j++) {
+                                    for (k = 1; k < 25 - 1; k++) {
+                                        suma = 0; if (matrix[j - 1][k] == "") {
+                                            for (l = 0; l < word[wordi].length; l++) {
+                                                if (matrix[j + l][k] != "") {
+                                                    if (matrix[j + l][k] == word[wordi][l]) { suma++; } else { suma -= 100; break; }
+                                                }
+                                                else {
+                                                    if (matrix[j + l][k + 1] != "") { suma -= 10; }
+                                                    if (matrix[j + l][k - 1] != "") { suma -= 10; }
+                                                }
+                                            }
+                                            if (matrix[j + word[wordi].length][k] != "") { suma -= 100; }
+                                        }
+                                        if (suma >= sumb) { sums[0] = j; sums[1] = k; sumb = suma; }
+                                    }
+                                }
+                                if (sumb > 0) {
+                                    for (i = 0; i < word[wordi].length; i++) {
+                                        matrix[sums[0] + i][sums[1]] = word[wordi][i];
+                                    }
+                                    word[wordi] = word[x];
+                                    x--;
+                                }
+                            }
+                            else {
+                                word[wordi] = word[x];
+                                x--;
+                            }
+                            wordi = Math.round(Math.random() * x);
+                            if (word[wordi].length < 25 - 1) {
+                                var sums = [0, 0];
+                                var sumb = 0;
+                                var suma;
+                                for (j = 1; j < 25 - 1; j++) {
+                                    for (k = 1; k < 25 - word[wordi].length; k++) {
+                                        suma = 0;
+                                        if (matrix[j][k - 1] == "") {
+                                            for (l = 0; l < word[wordi].length; l++) {
+                                                if (matrix[j][k + l] != "") {
+                                                    if (matrix[j][k + l] == word[wordi][l]) { suma++; } else { suma -= 100; break; }
+                                                }
+                                                else {
+                                                    if (matrix[j + 1][k + l] != "") { suma -= 10; }
+                                                    if (matrix[j - 1][k + l] != "") { suma -= 10; }
+                                                }
+                                            }
+                                            if (matrix[j][k + word[wordi].length] != "") { suma -= 100; }
+                                        }
+                                        if (suma >= sumb) { sums[0] = j; sums[1] = k; sumb = suma; }
+                                    }
+                                }
+                                if (sumb > 0) {
+                                    for (i = 0; i < word[wordi].length; i++) {
+                                        matrix[sums[0]][sums[1] + i] = word[wordi][i];
+                                    }
+                                    word[wordi] = word[x];
+                                    x--;
+                                }
+                            }
+                            else { word[wordi] = word[x]; x--; }
+                        }
+                        if (repeat == 10) backup = matrix.slice(0);
+                        else {
+                            var count1 = 0, count2 = 0;
+                            for (j = 1; j <= 25; j++) {
+                                for (k = 1; k <= 25; k++) {
+                                    if (matrix[j - 1][k - 1] != "") count1++;
+                                    if (backup[j - 1][k - 1] != "") count2++;
+                                }
+                            }
+                            if (count1 > count2) backup = matrix.slice(0);
+                        }
+                        if (repeat > 0) { repeat--; american(); }
+                        else {
+			    matrix = backup.slice(0);
+                            for (j = 1; j <= 25; j++) {
+                                for (k = 1; k <= 25; k++) {
+                                    if (matrix[j - 1][k - 1] != "") {
+					document.getElementById(j + "-" + k).style.background = "lightgray";
+				        document.getElementById(j + "-" + k).style.cursor = "pointer";
+				    }
+                                    else {
+                                        document.getElementById(j + "-" + k).style.background = "white";
+                                        document.getElementById(j + "-" + k).style.width = "1px";
+                                        document.getElementById(j + "-" + k).style.height = "1px";
+                                    }
+                                }
+                            }
+			}
+                    }
+                    function progress() {
+                        for (j = 1; j <= 25; j++) {
+                            for (k = 1; k <= 25; k++) {
+                                if (document.getElementById(j + "-" + k).style.backgroundColor != "white") {
+                                    var prosor = document.getElementById(j + "-" + k).textContent;
+                                    if (prosor.normalize('NFD').replace(/[\u0300-\u036f]/g, "").toLowerCase() != matrix[j - 1][k - 1].normalize('NFD').replace(/[\u0300-\u036f]/g, "").toLowerCase()) return;
+                                }
+                            }
+                        }
+			setTimeout(function () { document.getElementById("aF").style.opacity = 0.5; }, 1000);
+			setTimeout(function () { document.getElementById("congrats").style.display = "block"; }, 2000);
+			setTimeout(function () { document.getElementById("congrats").style.display = "none"; }, 4500);
+			setTimeout(function () { document.getElementById("aF").style.opacity = 1; }, 5000);
+                    }
+                    var aClick = function (e) {
+			if (tries == 0) return;
+			tries--;
+                        for (j = 1; j <= 25; j++) {
+                            for (k = 1; k <= 25; k++) {
+                                if (document.getElementById(j + "-" + k).style.backgroundColor == "orange") {
+                                    var prosor = document.getElementById(j + "-" + k).textContent;
+                                    document.getElementById(j + "-" + k).textContent = matrix[j - 1][k - 1];
+                                }
+                            }
+                        }
+                        document.getElementById("shuffle").innerHTML = "";
+			if (tries == 0) {
+			    document.getElementById("ahelp").style.cursor = "not-allowed";
+			    document.getElementById("ahelp").innerHTML = "🔒";
+			}
+		        else document.getElementById("ahelp").innerHTML = "🔓<br />" + tries;
+			progress();
+                    };
+                    document.getElementById("ahelp").addEventListener('click', aClick);
+
+                    function clearA() {
+                        anagr = "";
+                        for (j = 1; j <= 25; j++) {
+                            for (k = 1; k <= 25; k++) {
+                                if (document.getElementById(j + "-" + k).style.backgroundColor == "orange") document.getElementById(j + "-" + k).style.background = "lightgray";
+                            }
+                        }
+                    }
+                    american();
+                    window.stop();
+
+                    var cells = document.getElementById("00").getElementsByTagName("TD");
+                    for (var i = 0; i < cells.length; i++) {
+                        cells[i].addEventListener('click', function (event) {
+                            event = event || window.event;
+                            var ro = event.target.id.split("-")[0];
+                            var co = event.target.id.split("-")[1];
+
+	                    document.getElementById("keyboard").style.left = event.clientX;
+	                    document.getElementById("keyboard").style.top = event.clientY;
+	                    document.getElementById("keyboard").focus();
+
+                            if (!document.getElementById(ro + "-" + co) || document.getElementById(ro + "-" + co).style.backgroundColor != "lightgray") return false;
+                            clearA();
+			    document.getElementById("ahelp").style.opacity = 1;
+
+			    var offW = document.getElementById('aF').offsetWidth - document.getElementById('00').offsetWidth;
+			    if (offW < 100) document.getElementById('results').style.width = document.getElementById('aF').offsetWidth + "px";
+			    else document.getElementById('results').style.width = offW - 5 + "px";
+
+                            while (document.getElementById(ro + "-" + co).style.backgroundColor != "white") co--;
+                            co++;
+
+                            if (co < event.target.id.split("-")[1] || document.getElementById(ro + "-" + (co + 1)).style.backgroundColor != "white") {
+                                while (document.getElementById(ro + "-" + co).style.backgroundColor != "white") {
+                                    document.getElementById(ro + "-" + co).style.background = "orange";
+				    document.getElementById(ro + "-" + co).textContent = "";
+                                    anagr += matrix[ro - 1][co - 1];
+                                    co++;
+                                }
+                                co--;
+                                horiz = true;
+
+                                showResult(redir[words.indexOf(anagr)]);
+                            }
+                            else {
+                                while (document.getElementById(ro + "-" + co).style.backgroundColor != "white") ro--;
+                                ro++;
+
+                                if (ro < event.target.id.split("-")[0] || document.getElementById((ro + 1) + "-" + co).style.backgroundColor != "white") {
+                                    while (document.getElementById(ro + "-" + co).style.backgroundColor != "white") {
+                                        document.getElementById(ro + "-" + co).style.background = "orange";
+				        document.getElementById(ro + "-" + co).textContent = "";
+                                        anagr += matrix[ro - 1][co - 1];
+                                        ro++;
+                                    }
+                                    horiz = false;
+
+                                    showResult(redir[words.indexOf(anagr)]);
+                                }
+                            }
+			    document.getElementById("keyboard").value = "";
+	                    document.getElementById("keyboard").focus();
+                        });
+                    }
+                    function anagram(letters) {
+                        var orig = toUint(letters.substring(letters.lastIndexOf("/") + 1));
+                        var anag = new Array();
+                        while (orig.length > 0) {
+                            var ltr = Math.floor(Math.random() * orig.length);
+                            anag.push(orig[ltr]);
+                            orig.splice(ltr, 1);
+                        }
+                        return anag.join('');
+                    }
+                    function levenshtein(a, b) {
+                        if (a.length === 0) return b.length;
+                        if (b.length === 0) return a.length;
+
+                        var matrix = [];
+
+                        for (var i = 0; i <= b.length; i++) matrix[i] = [i];
+                        for (var j = 0; j <= a.length; j++) matrix[0][j] = j;
+                        for (var i = 1; i <= b.length; i++) {
+                            for (var j = 1; j <= a.length; j++) {
+                                if (b.charAt(i - 1) == a.charAt(j - 1)) matrix[i][j] = matrix[i - 1][j - 1];
+                                else matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, Math.min(matrix[i][j - 1] + 1, matrix[i - 1][j] + 1));
+                            }
+                        }
+                        return matrix[b.length][a.length];
+                    }
+                    function showResult(theUrl) {
+                        document.getElementById("thumbnail").style.display = "none";
+                        document.getElementById("photo").style.display = "none";
+                        document.getElementById("description").style.display = "none";
+                        document.getElementById("expand").style.display = "none";
+                        document.getElementById("more").style.display = "none";
+                        document.getElementById("shuffle").innerHTML = "";
+
+                        var scr1 = lang + "w/api.php?format=json&action=query&titles=" + theUrl.split("#")[0].split("+")[0] + "&prop=description|pageimages|extracts|langlinks&pithumbsize=275&lllimit=500&redirects=&callback=rContent";
+
+                        var elem1 = document.createElement("script");
+                        elem1.setAttribute("src", scr1);
+                        elem1.setAttribute("type", "text/javascript");
+                        document.getElementsByTagName("head")[0].appendChild(elem1);
+                        elem1.onload = elem1.onreadystatechange = function () {
+                            if (!this.readyState || this.readyState === "loaded" || this.readyState === "complete") {
+                                var desc = "", thumb = "", extra = "", langs = [], reds = [];
+
+                                for (var key in red.query.pages) {
+                                    if (red.query.pages[key].description) desc = red.query.pages[key].description;
+                                    if (red.query.pages[key].thumbnail) thumb = red.query.pages[key].thumbnail.source;
+                                    if (red.query.pages[key].extract) extra = red.query.pages[key].extract;
+                                    if (red.query.pages[key].langlinks) langs = red.query.pages[key].langlinks;
+                                }
+                                if (red.query.redirects) reds = red.query.redirects;
+
+                                if (desc != "" && desc.toUpperCase().indexOf("WIKI") < 0) {
+                                    if (redir[words.indexOf(anagr)].indexOf(" ") > 0) desc = "<p><b> " + redir[words.indexOf(anagr)].charAt(0).toUpperCase() + redir[words.indexOf(anagr)].slice(1) + " </b>  | " + desc + " </p>";
+                                    else desc = "<p> " + desc.charAt(0).toUpperCase() + desc.slice(1) + " </p>";
+
+                                    document.getElementById("description").style.display = "block";
+                                    document.getElementById("expand").style.display = "block";
+                                }
+                                else {
+                                    desc = "<p></p>";
+                                    document.getElementById("more").style.display = "block";
+                                }
+                                if (thumb != "") document.getElementById("photo").style.display = "block";
+                                document.getElementById("thumbnail").src = thumb;
+				document.getElementById("shuffle").innerHTML = "<br />🔀";
+
+                                document.getElementById("wcont").innerHTML = extra.replace(/<\/b><b>/g, "").replace(/>/g, "> ").replace(/</g, " <").replace(/\\"/g, "'").replace(puncts, "     $&     ");
+                                var p = document.getElementById("wcont").getElementsByTagName("REF");
+                                while (p[0]) p[0].parentNode.removeChild(p[0]);
+                                p = document.getElementById("wcont").getElementsByClassName("reference separada");
+                                while (p[0]) p[0].parentNode.removeChild(p[0]);
+                                p = document.getElementById("wcont").getElementsByTagName("DL");
+                                if (p[0] && extra.indexOf("<dl") < 10) p[0].parentNode.removeChild(p[0]);
+
+                                var output = "", result = desc.replace(/\\"/g, "'").replace(puncts, "     $&     ") + "<h6></h6>" + document.getElementById("wcont").innerHTML.replace(/&nbsp;/g, " ") + "<h6></h6>";
+
+                                var reg = new RegExp(anagr, "gi");
+                                var regZH = new RegExp(anagr.substring(0, Math.max(2, anagr.length - 1)), "gi");
+                                var regJA = new RegExp(anagr.substring(0, anagr.length / 2 + 1), "gi");
+                                var aa = anagr.normalize('NFD').replace(/[\u0300-\u036f]/g, "").toLowerCase();
+                                var fill = "";
+                                for (var f = 0; f < aa.length; f++) fill += "_";
+
+                                var outSplits = result.trim().split(" ");
+                                for (var k = 0; k < outSplits.length; k++) {
+				    outSplits[k] = outSplits[k].trim();
+                                    if (outSplits[k].replace(puncts, "").replace(/\./g, "").replace(/\\(.)/g, "").replace(/[</\\>]/g, "").length <= 1) {
+                                        output += outSplits[k] + " ";
+                                        continue;
+                                    }
+                                    if (outSplits[k].length < 5 && stops.indexOf(outSplits[k].toLowerCase()) < 0) {
+                                        stops.push(outSplits[k].toLowerCase());
+                                        freqs.push(1);
+                                    }
+                                    else freqs[stops.indexOf(outSplits[k].toLowerCase())]++;
+                                    smax++;
+
+                                    var bb = outSplits[k].normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+                                    if (aa == bb || aa == bb.replace(/[\u0591-\u05C7]/g, '').replace(/[\u064B-\u065B]/g, '').replace(/\./g, "")) output += fill + " ";
+                                    else if (freqs[stops.indexOf(outSplits[k].toLowerCase())] > 10 && freqs[stops.indexOf(outSplits[k].toLowerCase())] > smax / 1000) output += outSplits[k] + " ";
+                                    else if (bb.indexOf(aa) == 0 && bb.length < 2 * aa.length) output += bb.replace(aa, fill) + " ";
+                                    else if (bb.substring(0, aa.length / 2 + 1) == aa.substring(0, aa.length / 2 + 1) && levenshtein(aa, bb) <= Math.min(aa.length, bb.length)) output += "@@@ ";
+                                    else if (levenshtein(aa, bb) <= Math.min(aa.length, bb.length) / 3) output += "@@@ ";
+                                    else if (lang.indexOf("/ja.") > 0 || lang.indexOf("://zh") > 0 || lang.indexOf("/gan.") > 0 || lang.indexOf("/wuu.") > 0) output += outSplits[k].replace(reg, fill).replace(regZH, "@@@").replace(regJA, "@@@") + " ";
+                                    else output += outSplits[k].replace(reg, fill) + " ";
+                                }
+                                output = output.replace(/\\(.)/g, " ");
+                                var parts = output.split("<h");
+
+                                document.getElementById("description").innerHTML = parts[0].replace(/> /g, ">").replace(/ </g, "<").replace(/     /g, "").replace(/@@@/g, "...");
+                                document.getElementById("more").innerHTML = "";
+
+                                for (var i = 1; i < 3; i++) {
+                                    if (notFfox && parts[i].indexOf("<math") >= 0 || i != 1 && parts[i].length < 250) continue;
+                                    while (parts[i].indexOf('）') > 0) {
+                                        var par = parts[i].split('）')[0];
+                                        if (i != 1 || par.indexOf('（') < 0 || par.indexOf('（') - par.lastIndexOf(fill) > 50) break;
+                                        par = par.substring(par.lastIndexOf('（'));
+                                        parts[i] = parts[i].replace(par + "）", "");
+                                    }
+                                    while (parts[i].indexOf(')') > 0) {
+                                        var par = parts[i].split(')')[0];
+                                        if (i != 1 || par.indexOf('(') < 0 || par.indexOf('(') - par.lastIndexOf(fill) > 50) break;
+                                        par = par.substring(par.lastIndexOf('('));
+                                        parts[i] = parts[i].replace(par + ")", "");
+                                    }
+                                    if (document.getElementById("more").textContent.indexOf(fill) >= 0 || parts[i].indexOf(fill) >= 0 || i == 1 && parts[i].indexOf("@@@") >= 0 && parts[i].indexOf("@@@") < 50) {
+                                        for (var j = 0; j < langs.length; j++) {
+                                            var lng = langs[j]['*'].split(',')[0].split('(')[0].trim();
+                                            var reg2 = new RegExp(" " + lng + " ", "gi");
+                                            if (lng != "") parts[i] = parts[i].replace(reg2, " {...} ");
+                                        }
+                                        for (var j = 0; j < reds.length; j++) {
+                                            var rds = reds[j].to.split(',')[0].split('(')[0].trim();
+                                            var reg2 = new RegExp(" " + rds + " ", "gi");
+                                            if (rds != "") parts[i] = parts[i].replace(reg2, " [...] ");
+                                        }
+                                        document.getElementById("more").innerHTML += "<h" + parts[i].replace(/\s\/(.*?)\/\s/g, "[...]").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/> /g, ">").replace(/ </g, "<").replace(/     /g, "").replace(/&amp;/g, '&').replace(/ ,/g, ",").replace(/ :/g, ":").replace(/ ;/g, ";").replace(/ \./g, ".").replace(/,,/g, ",").replace(/,\./g, ".").replace(/@@@/g, "...").replace(/<!--[\s\S]*?-->/g, "");
+
+                                        if (document.getElementById("more").textContent.length > 500) break;
+                                    }
+                                }
+                                if (document.getElementById("more").textContent.length < 10 + redir[words.indexOf(anagr)].length) {
+                                    if (parts[0].length >= 9) document.getElementById("expand").style.display = "none";
+				    else document.getElementById("shuffle").innerHTML = "";
+
+                                    var prosor = redir[words.indexOf(anagr)].replace(reg, fill);
+
+                                    for (var b = 0; b < 25; b++) setTimeout(function () {
+                                        var a = anagram(aa);
+                                        document.getElementById("more").innerHTML = "<h3>" + prosor.replace(fill, "<u>" + a.toUpperCase() + "</u>") + "</h3>";
+                                    }, 500 + b * 50);
+                                }
+                                else document.getElementById("more").innerHTML += " ...";
+
+                                p = document.getElementById("more").getElementsByTagName("H2");
+                                if (p[0]) p[0].parentNode.removeChild(p[0]);
+                                document.getElementById("results").scrollTop = 0;
+
+				var old_element = document.getElementById("shuffle");
+				var new_element = old_element.cloneNode(true);
+				old_element.parentNode.replaceChild(new_element, old_element);
+				document.getElementById("shuffle").addEventListener("click", function () {
+                                    var prosor = redir[words.indexOf(anagr)].replace(reg, fill);
+
+                                    for (var b = 0; b < 25; b++) setTimeout(function () {
+                                        var a = anagram(aa);
+					var reg3 = new RegExp(fill, "g");
+                                        document.getElementById("shuffle").innerHTML = "<br />🔀 " + prosor.replace(fill, "<u>" + a.toUpperCase() + "</u>");
+                                    }, 500 + b * 50);
+				});
+                            }
+                        };
+                    }
+		    document.getElementById("keyboard").addEventListener("keydown", function (event) {
+                        event = event || window.event;
+                        var KeyID = event.keyCode;
+			if (KeyID === 9) event.preventDefault();
+			else if (KeyID !== 8) {
+			    if (document.getElementById("keyboard").value.length >= anagr.length) event.preventDefault();
+			}
+                    });
+                    document.getElementById("keyboard").addEventListener("keyup", function (event) {
+                        event = event || window.event;
+                        var KeyID = event.keyCode;
+			var count = 0;
+			var input = toUint(document.getElementById("keyboard").value);
+                        for (var j = 1; j <= 25; j++) {
+                            for (var k = 1; k <= 25; k++) {
+                                if (document.getElementById(j + "-" + k).style.backgroundColor == "orange") {
+                                    if (count >= input.length) document.getElementById(j + "-" + k).textContent = "";
+                                    else document.getElementById(j + "-" + k).textContent = input[count];
+				    count++;
+                                }
+                            }
+			}
+			progress();
+                    });
+                }
+            };
+        }
+        function startK() {
+            var khtml = "";
+            for (var m = 1; m <= 25; m++) {
+                khtml += '<tr>';
+                for (var n = 1; n <= 25; n++) {
+                    khtml += '<td><input type="text" id="' + m + '-' + n + '" maxlength="1" class="crypto" readonly></td>';
+                }
+                khtml += '</tr>';
+            }
+            document.getElementById("00").innerHTML = khtml;
+            document.getElementById("ahelp").style.opacity = 1;
+	    document.getElementById("ahelp").style.cursor = "pointer";
+
+            var tds = document.getElementById("00").getElementsByTagName("TD");
+            document.getElementById("00").style.transform = "scaleX(1)";
+            for (var i = 0; i < tds.length; i++) tds[i].style.transform = "scaleX(1)";
+
+            var cat = -1, scr0 = "";
+
+            if (qcat) {
+                links = new Array();
+                cat = 1;
+	        var cdir = "&cmdir=older";
+	        if (Math.random() > 0.75) cdir = "";
+
+                scr0 = lang + "w/api.php?format=json&action=query&titles=" + query + "&prop=info&list=categorymembers&cmtitle=" + query + "&cmnamespace=0|14&cmlimit=500&cmsort=timestamp" + cdir + "&callback=rContent";
+            }
+            else {
+                cat = 0;
+	        var bdir = "&bldir=descending";
+	        if (Math.random() > 0.5) bdir = "";
+
+                scr0 = lang + "w/api.php?format=json&action=query&titles=" + query + "&prop=info&list=backlinks&bltitle=" + query + "&blnamespace=0&bllimit=500" + bdir + "&callback=rContent";
+            }
+            elem0 = document.createElement('script');
+            elem0.setAttribute('src', scr0);
+            elem0.setAttribute('type', 'text/javascript');
+            document.getElementsByTagName('head')[0].appendChild(elem0);
+
+            elem0.onload = elem0.onreadystatechange = function () {
+                if (!this.readyState || this.readyState === "loaded" || this.readyState === "complete") {
+                    if (cat >= 0) {
+                        var ls = [];
+                        if (cat == 1 && red.query.categorymembers) ls = red.query.categorymembers;
+                        else if (red.query.backlinks) ls = red.query.backlinks;
+
+                        for (var i = 0; i < ls.length; i++) {
+			    if (ls[i].ns > 0) ls[i].title = ls[i].title.split(':')[1];
+			    if (links.indexOf(ls[i].title) < 0) links.push(ls[i].title);
+			}
+                    }
+                    var currentUrl = lang;
+                    var alphabet = "";
+		    var backup = new Array();
+                    var words = new Array();
+                    var wwis = new Array();
+                    var parts = links.slice(0);
+
+                    while (parts.length > 0) {
+                        var pi = Math.round(Math.random() * (parts.length - 1));
+                        var txt = parts[pi].split(',')[0].split('(')[0].replace(puncts, ' ').replace(/\./g, " ").trim();
+                        var p = txt.split(" ");
+                        txt = "";
+                        for (var z = 0; z < p.length; z++) if (p[z].length > 1 && p[z].length >= txt.length && p[z] == p[z].replace(/[0-9/\u00A0-\u00BF]/g, '')) txt = p[z];
+
+                        if (txt != "" && alphabet.indexOf(txt.substring(0, txt.length / 2 + 1).toLowerCase()) < 0) {
+			    var tu = toUint(txt.toLowerCase());
+			    if (txt.toLowerCase() == tu.join('') && tu.length > 1) {
+                                alphabet += txt.toLowerCase();
+                                words.push(txt.toLowerCase());
+                                wwis.push(tu);
+                            }
+                        }
+                        parts.splice(pi, 1);
+                    }
+                    var mClick = false, mX, mY;
+                    var pressed = false, presses = 0;
+                    var repeat = 10;
+                    var tries = 5;
+		    if (words.length < 50) tries = Math.ceil(words.length / 10);
+                    document.getElementById("ahelp").innerHTML = "🔓<br />" + tries;
+                    var wordi, word, x;
+                    var bIndex = new Array(), index = new Array(), found = new Array(), temp = new Array();
+                    var check, count, krypto, lexeis, bLexeis, bCount, bKrypto;
+
+                    function cryptic() {
+                        word = wwis.slice(0);
+                        x = word.length - 1;
+                        var indxi;
+                        var indx = new Array();
+                        count = 0;
+                        krypto = new Array();
+                        lexeis = new Array();
+                        var time = 5 * 25;
+                        while (x >= 0 & time > 0) {
+                            time--;
+                            wordi = Math.round(Math.random() * x);
+                            if (word[wordi].length > 25 - 2) { word[wordi] = word[x]; x--; }
+                            else {
+                                var n = 0;
+                                for (i = 0; i < 25; i++) {
+                                    for (j = 0; j < 25 + 1 - word[wordi].length; j++) {
+                                        indx[n] = [0, 0];
+                                        indx[n][0] = i * 25 + j;
+                                        indx[n][1] = 0;
+                                        n++;
+                                        indx[n] = [0, 0];
+                                        indx[n][0] = word[wordi].length - 1 + i * 25 + j;
+                                        indx[n][1] = 1;
+                                        n++;
+                                        indx[n] = [0, 0];
+                                        indx[n][0] = i + j * 25;
+                                        indx[n][1] = 2;
+                                        n++;
+                                        indx[n] = [0, 0];
+                                        indx[n][0] = (word[wordi].length - 1) * 25 + i + j * 25;
+                                        indx[n][1] = 3;
+                                        n++;
+                                    }
+                                }
+                                for (i = 0; i < 25; i++) {
+                                    for (j = 0; j < 25; j++) {
+                                        if (i < 25 - word[wordi].length & j < 25 - word[wordi].length) {
+                                            indx[n] = [0, 0];
+                                            indx[n][0] = i * 25 + j;
+                                            indx[n][1] = 4;
+                                            n++;
+                                        }
+                                        if (i > word[wordi].length - 2 & j > word[wordi].length - 2) {
+                                            indx[n] = [0, 0];
+                                            indx[n][0] = i * 25 + j;
+                                            indx[n][1] = 5;
+                                            n++;
+                                        }
+                                        if (i < 25 - word[wordi].length & j > word[wordi].length - 2) {
+                                            indx[n] = [0, 0];
+                                            indx[n][0] = i * 25 + j;
+                                            indx[n][1] = 6;
+                                            n++;
+                                        }
+                                        if (i > word[wordi].length - 2 & j < 25 - word[wordi].length) {
+                                            indx[n] = [0, 0];
+                                            indx[n][0] = i * 25 + j;
+                                            indx[n][1] = 7;
+                                            n++;
+                                        }
+                                    }
+                                }
+                                indxi = Math.floor(Math.random() * n);
+                                index[count] = indx[indxi][0];
+                                for (i = 1; i < word[wordi].length; i++) {
+                                    if (indx[indxi][1] == 0) {
+                                        index[count + i] = indx[indxi][0] + i;
+                                    }
+                                    if (indx[indxi][1] == 1) {
+                                        index[count + i] = indx[indxi][0] - i;
+                                    }
+                                    if (indx[indxi][1] == 2) {
+                                        index[count + i] = indx[indxi][0] + 25 * i;
+                                    }
+                                    if (indx[indxi][1] == 3) {
+                                        index[count + i] = indx[indxi][0] - 25 * i;
+                                    }
+                                    if (indx[indxi][1] == 4) {
+                                        index[count + i] = indx[indxi][0] + (25 + 1) * i;
+                                    }
+                                    if (indx[indxi][1] == 5) {
+                                        index[count + i] = indx[indxi][0] - (25 + 1) * i;
+                                    }
+                                    if (indx[indxi][1] == 6) {
+                                        index[count + i] = indx[indxi][0] + (25 - 1) * i;
+                                    }
+                                    if (indx[indxi][1] == 7) {
+                                        index[count + i] = indx[indxi][0] - (25 - 1) * i;
+                                    }
+                                }
+                                check = true;
+                                for (j = 0; j < word[wordi].length; j++) {
+                                    for (i = 0; i < count; i++) {
+                                        if (index[i] == index[count + j]) {
+                                            if (krypto[i] == word[wordi][j]) {
+                                                index[count + j] = 10000;
+                                            }
+                                            else { check = false; break; }
+                                        }
+                                    }
+                                }
+                                if (check) {
+                                    lexeis.push(word[wordi].join('').normalize('NFD').replace(/[\u0300-\u036f]/g, "").toLowerCase());
+                                    for (i = 0; i < word[wordi].length; i++) krypto.push(word[wordi][i]);
+                                    count += word[wordi].length;
+                                    word[wordi] = word[x];
+                                    x--;
+                                }
+                            }
+                        }
+                        if (repeat == 10) {
+                            bLexeis = lexeis.slice(0);
+                            bIndex = index.slice(0);
+                            bCount = count;
+                            bKrypto = krypto;
+                        }
+                        else {
+                            var count1 = 0, count2 = 0;
+                            for (j = 1; j <= 25 * 25; j++) {
+                                var check1 = true, check2 = true;
+                                for (k = 0; k < count; k++) if (index[k] == j) check1 = false;
+                                for (k = 0; k < bCount; k++) if (bIndex[k] == j) check2 = false;
+                                if (check1) count1++;
+                                if (check2) count2++;
+                            }
+                            if (count1 < count2) {
+                                bLexeis = lexeis.slice(0);
+                                bIndex = index.slice(0);
+                                bCount = count;
+                                bKrypto = krypto;
+                            }
+                        }
+                        if (repeat > 0) { repeat--; cryptic(); }
+                        lexeis = bLexeis.slice(0);
+                        index = bIndex.slice(0);
+                        count = bCount;
+                        krypto = bKrypto;
+                        for (i = 0; i < 25 * 25; i++) {
+                            var ro = Math.floor(i / 25 + 1);
+                            var co = (i % 25) + 1;
+                            check = true;
+                            for (j = 0; j < count; j++) {
+                                if (index[j] == i) {
+                                    document.getElementById(ro + "-" + co).value = krypto[j];
+                                    check = false;
+                                }
+                            }
+                            if (check) {
+                                var rand = krypto[Math.floor(Math.random() * krypto.length)];
+                                document.getElementById(ro + "-" + co).value = rand;
+                            }
+                        }
+                        document.getElementById("clues").innerHTML = lexeis.join("<br />");
+                    }
+                    var kClick = function (e) {
+			if (tries == 0) return;
+			tries--;
+                        for (i = 0; i < 25 * 25; i++) {
+                            var ro = Math.floor(i / 25 + 1);
+                            var co = (i % 25) + 1;
+                            check = true;
+                            for (j = 0; j < count; j++) {
+                                if (index[j] == i) { check = false; }
+                            }
+                            if (check) document.getElementById(ro + "-" + co).style.color = "lightgray";
+                        }
+                        setTimeout(function () { 
+			    if (tries == 0) {
+				document.getElementById("ahelp").style.cursor = "not-allowed";
+				document.getElementById("ahelp").innerHTML = "🔒";
+			    }
+                            else document.getElementById("ahelp").innerHTML = "🔓<br />" + tries;
+			    clearK();
+			}, 1000);
+                    };
+                    document.getElementById("ahelp").addEventListener('click', kClick);
+                    function clearK() {
+                        temp = new Array();
+                        mX = 10;
+                        mY = 10;
+                        document.getElementById("guess").value = "";
+                        document.getElementById("guess").style.color = "black";
+                        mClick = false;
+                        for (j = 1; j <= 25; j++) {
+                            for (k = 1; k <= 25; k++) {
+                                document.getElementById(j + "-" + k).disabled = false;
+                                if (found.indexOf(j + "-" + k) < 0) document.getElementById(j + "-" + k).style.color = "black";
+                            }
+                        }
+                        pressed = false;
+                        presses = 0;
+                    }
+                    cryptic();
+
+                    var cells = document.getElementById("00").getElementsByTagName("TD");
+                    for (var i = 0; i < cells.length; i++) {
+                        var ro = Math.floor(i / 25 + 1);
+                        var co = (i % 25) + 1;
+
+                        backup.push(document.getElementById(ro + "-" + co).value);
+
+                        function pres(event) {
+                            event = event || window.event;
+			    event.preventDefault();
+                            if (!pressed || document.getElementById(event.target.id).disabled) return false;
+                            temp.push(event.target.id);
+                            document.getElementById(event.target.id).style.color = "orange";
+                            document.getElementById("guess").value += document.getElementById(event.target.id).value;
+
+                            var prosor = document.getElementById("guess").value;
+                            if (lexeis.indexOf(prosor.normalize('NFD').replace(/[\u0300-\u036f]/g, "").toLowerCase()) >= 0) {
+                                document.getElementById("guess").style.color = "green";
+                                found = found.concat(temp);
+                                lexeis.splice(lexeis.indexOf(prosor.normalize('NFD').replace(/[\u0300-\u036f]/g, "").toLowerCase()), 1);
+                                document.getElementById("clues").innerHTML = lexeis.join("<br />");
+                                setTimeout(function () { clearK(); }, 2000);
+                            }
+                            else if ((alphabet.normalize('NFD').replace(/[\u0300-\u036f]/g, "").indexOf(prosor.normalize('NFD').replace(/[\u0300-\u036f]/g, "").toLowerCase()) < 0 && alphabet.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").indexOf(prosor.normalize('NFD').replace(/[\u0300-\u036f]/g, "").toUpperCase()) < 0) || (event.target.id.split("-")[0].replace("k", "") == "1" && mX == 2) || (event.target.id.split("-")[0].replace("k", "") == 25 + "" && mX == 25 - 1) || (event.target.id.split("-")[1] == "1" && mY == 2) || (event.target.id.split("-")[1] == 25 + "" && mY == 25 - 1)) setTimeout(function () { clearK(); }, 500);
+                            else if (mClick) { hide(event.target.id.split("-")[0].replace("k", ""), event.target.id.split("-")[1]); }
+                            else {
+                                mX = event.target.id.split("-")[0].replace("k", "");
+                                mY = event.target.id.split("-")[1];
+                                for (j = 1; j <= 25; j++) {
+                                    for (k = 1; k <= 25; k++) {
+                                        document.getElementById(j + "-" + k).disabled = true;
+                                        if (Math.abs(j - mX) <= 1 && Math.abs(k - mY) <= 1) document.getElementById(j + "-" + k).disabled = false;
+                                    }
+                                }
+                                mClick = true;
+                            }
+                            document.getElementById(event.target.id).disabled = true;
+			    if (document.getElementById("clues").innerHTML == "") {
+				setTimeout(function () { document.getElementById("kF").style.opacity = 0.5; }, 1000);
+				setTimeout(function () { document.getElementById("congrats").style.display = "block"; }, 2000);
+				setTimeout(function () { document.getElementById("congrats").style.display = "none"; }, 4500);
+				setTimeout(function () { document.getElementById("kF").style.opacity = 1; }, 5000);
+			    }
+                            presses++;
+                            if (presses <= 1) pressed = false;
+                        }
+                        cells[i].addEventListener('mousedown', function(event) { pressed = true; });
+                        cells[i].addEventListener('mousedown', pres);
+                        cells[i].addEventListener('mouseover', pres);
+                    }
+                    var chk1 = false, chk2 = false;
+
+                    if (backup.join('').toLowerCase() !== backup.join('').toUpperCase()) {
+                        document.getElementById("checks").innerHTML += '<input type="checkbox" id="rad1" checked />A';
+                        chk1 = true;
+                    }
+                    if (backup.join('').normalize('NFD').replace(/[\u0300-\u036f]/g, "") !== backup.join('').normalize('NFD')) {
+                        document.getElementById("checks").innerHTML += '<input type="checkbox" id="rad2" />á';
+                        chk2 = true;
+                    }
+                    if (chk1) {
+                        document.getElementById("rad1").addEventListener('change', function (event) {
+                            clearK();
+                            for (i = 0; i < 25 * 25; i++) {
+                                var ro = Math.floor(i / 25 + 1);
+                                var co = (i % 25) + 1;
+                                var box = document.getElementById(ro + "-" + co);
+
+                                if (this.checked && box.value.toUpperCase().length == 1) box.value = box.value.toUpperCase();
+                                else box.value = backup[i];
+                                if (document.getElementById("rad2") && !document.getElementById("rad2").checked) box.value = box.value.normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+                            }
+                        });
+                        document.getElementById("rad1").dispatchEvent(new Event('change'));
+                    }
+                    if (chk2) {
+                        document.getElementById("rad2").addEventListener('change', function (event) {
+                            clearK();
+                            for (i = 0; i < 25 * 25; i++) {
+                                var ro = Math.floor(i / 25 + 1);
+                                var co = (i % 25) + 1;
+                                var box = document.getElementById(ro + "-" + co);
+
+                                if (this.checked) box.value = backup[i];
+                                else box.value = box.value.normalize('NFD').replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+                                if (document.getElementById("rad1") && document.getElementById("rad1").checked && box.value.toUpperCase().length == 1) box.value = box.value.toUpperCase();
+                            }
+                        });
+                        document.getElementById("rad2").dispatchEvent(new Event('change'));
+                    }
+                    function hide(x, y) {
+                        for (j = 1; j <= 25; j++) {
+                            for (k = 1; k <= 25; k++) {
+                                document.getElementById(j + "-" + k).disabled = false;
+                                if ((j - x) != (x - mX) || (k - y) != (y - mY)) document.getElementById(j + "-" + k).disabled = true;
+                            }
+                        }
+                        document.getElementById(x + "-" + y).style.color = "orange";
+                        document.getElementById(x + "-" + y).disabled = true;
+                        mX = x;
+                        mY = y;
+                    }
+                }
+            };
+        }
+    </script>
+</body>
+</html>
