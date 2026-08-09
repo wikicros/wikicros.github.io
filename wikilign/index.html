@@ -5,8 +5,7 @@
     <link rel="icon" href="../icons/wikilign.png" />
     <style>
 		body {
-			color: white;
-      background-image: linear-gradient(to bottom right, black, dimgray);
+      background-color: whitesmoke;
 		}
 		a {
 	    pointer-events: none;
@@ -34,7 +33,7 @@
 	}
         #ng {
 	    background-image: url('../icons/wikilign.png');
-            background-color: white;
+            background-color: whitesmoke;
             background-repeat: no-repeat;
             background-size: contain;
             height: 100%;
@@ -80,7 +79,7 @@
 	<input type="number" title="#CARDS" style="width:3em;height:100%;cursor:default" id="cards" value="4" min="2" max="9" />
         <button type="button" id="ng" title="NEW GAME" onclick="refresh(1);">&nbsp;&nbsp;&nbsp;</button>
 	<small id="fdate" style="color:silver;font-weight:bolder;margin-left:50px"></small>
-	<input type="range" id="slider" min="0" style="appearance:none;background:silver;border:solid white 3px;opacity:0;width:50px" onchange="this.title=tlines[this.value].split('|')[1];" />
+	<input type="range" id="slider" min="0" style="appearance:none;background:silver;border:solid whitesmoke 3px;opacity:0;width:50px" onchange="this.title=tlines[this.value].split('|')[1];" />
 	<small id="ldate" style="color:silver;font-weight:bolder"></small>
     </div>
     <div id="splash" style="width:100%"><img src="../icons/wikilign.png" style="width:20%" onload="this.parentNode.style.opacity=1" /><br /><h1 id="loader" style="color:silver"></h1></div>
