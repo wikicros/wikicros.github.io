@@ -6,19 +6,33 @@
       padding: 20%;
     }
     img {
-      width: 12%;
-      margin: 10px;
+      width: 100%;
       cursor: pointer;
-      border: solid black 10px;
-      border-radius: 10px;
+    }
+    td, th {
+      width: 12%;
+      height: 12%;
+    }
+    th {
+      background-color: black;
     }
   </style>
 </head>
 <body>
-  <img src="icons/wikicros.png" onclick="window.location.href = &quot;/wikicros/&quot;" title="WikiCros: word search and criss-cross puzzles in more than 250 languages." style="background-color: black; filter: invert(100%);" />
-  <img src="icons/wikicuiz.png" onclick="window.location.href = &quot;/wikicuiz/&quot;" title="WikiCuiz: select the most relevant wikipedia category before time runs out." style="background-color: black;" />
-  <br>
-  <img src="icons/wikilign.png" onclick="window.location.href = &quot;/wikilign/&quot;" title="WikiLign: put the cards in the right chronological order." style="background-color: black;" />
-  <img src="icons/editor.png" onclick="window.location.href = &quot;/editor/&quot;" title="WikiCros Editor: customize and print your wikipedia crossword puzzles." style="filter: invert(100%);" />
+  <table>
+    <tr>
+      <td><img src="icons/wikicros.png" onclick="window.location.href = &quot;/wikicros/&quot;" title="WikiCros: word search and criss-cross puzzles in more than 250 languages." style="background-color: black; filter: invert(100%);" /></td>
+      <td></td><td></td><td></td>
+      <td><img src="icons/wikicuiz.png" onclick="window.location.href = &quot;/wikicuiz/&quot;" title="WikiCuiz: select the most relevant wikipedia category before time runs out." style="background-color: black;" /></td>
+    </tr>
+    <tr><th></th><td></td><th></th><td></td><th></th></tr>
+    <tr>
+      <td></td>
+      <td><img src="icons/wikilign.png" onclick="window.location.href = &quot;/wikilign/&quot;" title="WikiLign: put the cards in the right chronological order." style="background-color: black;" /></td>
+      <td></td>
+      <td><img src="icons/editor.png" onclick="window.location.href = &quot;/editor/&quot;" title="WikiCros Editor: customize and print your wikipedia crossword puzzles." style="filter: invert(100%);" /></td>
+      <td></td>
+    </tr>
+  </table>
 </body>
 </html>
