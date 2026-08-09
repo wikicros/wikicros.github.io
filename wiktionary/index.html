@@ -1,0 +1,731 @@
+<html>
+<head>
+    <meta charset="utf8">
+    <title>WikiCros</title>
+    <link rel="icon" href="icons/wikicros.png" />
+    <style>
+        table {
+            float: left;
+            border-spacing: 0;
+        }
+        td {
+            padding: 0;
+        }
+        button {
+            background-color: white;
+            background-repeat: no-repeat;
+            background-size: contain;
+            height: 100%;
+        }
+        .cross {
+            font-size: small;
+            text-align: center;
+            width: 22px;
+	    	height: 24px;
+            border: solid white 2px;
+        }
+        #clist {
+            list-style: none;
+            padding: 0;
+            width: 100%;
+            height: 100px;
+            overflow: auto;
+            background: WhiteSmoke;
+        }
+        #clist li {
+            cursor: pointer;
+            font-size: small;
+            border: dotted silver 1px;
+            padding: 0.25em;
+            width: 250px;
+            display: inline-block;
+	    	overflow: hidden;
+	    	text-overflow: ellipsis;
+        }
+        #clist li:hover {
+            color: firebrick;
+        }
+        #ahelp {
+            float: left;
+            cursor: pointer;
+            margin-right: 0.5em;
+            font-size: small;
+            padding: 0;
+            height: auto;
+        }
+        #results {
+            float: right;
+            height: 75%;
+            font-size: small;
+	    	overflow-y: scroll;
+        }
+        #wcont {
+            opacity: 0;
+	    	width: 1px;
+	    	height: 1px;
+	    	overflow: hidden;
+        }
+        #keyboard {
+            opacity: 0;
+            width: 1px;
+            height: 1px;
+            position: absolute;
+        }
+        #drop_down {
+            padding: 1em;
+            position: absolute;
+            display: none;
+            background: lavender;
+            cursor: pointer;
+            list-style-type: none;
+            box-shadow: 5px 5px 3px 0px rgba(0,0,0,0.5);
+        }
+        #congrats {
+            text-shadow: 10px 10px 5px rgba(0,0,0,0.5);
+            font-size: 250px;
+            color: darkolivegreen;
+            position: absolute;
+            top: 150px;
+            left: 250px;
+	    	display: none;
+        }
+    </style>
+    <script type="text/javascript">cookieChoices = {};</script>
+</head>
+<body>
+    <div id="gui" style="height:35px">
+        <select style="height:100%" id="lang" onchange="document.getElementById('spellcheckinput').value=langlist[this.selectedIndex].substring(langlist[this.selectedIndex].indexOf(':') + 1); startA(false);"></select>
+        <input style="width:25em;height:100%;padding-right:25px" id="spellcheckinput" onkeyup="getjs(this.value);" type="text" value="English language" />
+        <span title="RANDOM" style="margin-left:-25px;margin-right:10px;cursor:pointer" onclick="randP('');">↻</span>
+        <button type="button" id="cc" title="NEW PUZZLE" onclick="startA(false);"  style="color:cadetblue;background-image:url('icons/wikicros.png')">_</button>
+	<button type="button" title="RIGHT TO LEFT" style="font-size:large;float:right" disabled>&crarr;<input type="checkbox" id="rtol" onclick="RtoL(this.checked);" /></button>
+    </div>
+    <ul id="clist"></ul>
+    <button id="ahelp"></button>
+    <table id="00"></table>
+    <div id="wcont" contenteditable="true"></div>
+    <div id="aF">
+	<img id="splash" src="icons/wikicros.png" style="height:75%;opacity:0.1" />
+        <input type="text" id="keyboard" />
+        <div id="results"></div>
+    </div>
+    <ul id="drop_down"></ul>
+    <span id="congrats">✓</span>
+    <script type="text/javascript">
+        var lang = "https://en.wiktionary.org/", query, links, checkU;
+		var langlist = new Array();
+        var puncts = /[!-.:;=?@\[\]^_`{-~\u00A1\u00A7\u00AB\u00B6\u00B7\u00BB\u00BF\u037E\u0387\u055A-\u055F\u0589\u058A\u05BE\u05C0\u05C3\u05C6\u05F3\u05F4\u0609\u060A\u060C\u060D\u061B\u061E\u061F\u066A-\u066D\u06D4\u0700-\u070D\u07F7-\u07F9\u0830-\u083E\u085E\u0964\u0965\u0970\u0AF0\u0DF4\u0E4F\u0E5A\u0E5B\u0F04-\u0F12\u0F14\u0F3A-\u0F3D\u0F85\u0FD0-\u0FD4\u0FD9\u0FDA\u104A-\u104F\u10FB\u1360-\u1368\u1400\u166D\u166E\u169B\u169C\u16EB-\u16ED\u1735\u1736\u17D4-\u17D6\u17D8-\u17DA\u1800-\u180A\u1944\u1945\u1A1E\u1A1F\u1AA0-\u1AA6\u1AA8-\u1AAD\u1B5A-\u1B60\u1BFC-\u1BFF\u1C3B-\u1C3F\u1C7E\u1C7F\u1CC0-\u1CC7\u1CD3\u2010-\u2027\u2030-\u2043\u2045-\u2051\u2053-\u205E\u207D\u207E\u208D\u208E\u2329\u232A\u2768-\u2775\u27C5\u27C6\u27E6-\u27EF\u2983-\u2998\u29D8-\u29DB\u29FC\u29FD\u2CF9-\u2CFC\u2CFE\u2CFF\u2D70\u2E00-\u2E2E\u2E30-\u2E3B\u3001-\u3003\u3008-\u3011\u3014-\u301F\u3030\u303D\u30A0\u30FB\uA4FE\uA4FF\uA60D-\uA60F\uA673\uA67E\uA6F2-\uA6F7\uA874-\uA877\uA8CE\uA8CF\uA8F8-\uA8FA\uA92E\uA92F\uA95F\uA9C1-\uA9CD\uA9DE\uA9DF\uAA5C-\uAA5F\uAADE\uAADF\uAAF0\uAAF1\uABEB\uFD3E\uFD3F\uFE10-\uFE19\uFE30-\uFE52\uFE54-\uFE61\uFE63\uFE68\uFE6A\uFE6B\uFF01-\uFF03\uFF05-\uFF0A\uFF0C-\uFF0F\uFF1A\uFF1B\uFF1F\uFF20\uFF3B-\uFF3D\uFF3F\uFF5B\uFF5D\uFF5F-\uFF65]+/g;
+		
+        function selectQ(q) {
+            query = langlist[document.getElementById("lang").selectedIndex] + q;
+            document.getElementById("drop_down").style.display = 'none';
+            document.getElementById("spellcheckinput").value = q;
+            document.getElementById('spellcheckinput').style.color = "black";
+            document.getElementById('cc').disabled = false;
+            document.getElementById('cc').style.opacity = 1;
+	    	startA(true);
+        }
+        var red, rContent = function (data) {
+            red = JSON.parse(JSON.stringify(data));
+        };
+        var scr0 = "https://el.wiktionary.org/w/api.php?format=json&action=parse&page=Κατηγορία:Αγγλική γλώσσα&prop=langlinks&callback=rContent";
+
+        var elem0 = document.createElement('script');
+        elem0.setAttribute('src', scr0);
+        elem0.setAttribute('type', 'text/javascript');
+        document.getElementsByTagName('head')[0].appendChild(elem0);
+
+        elem0.onload = elem0.onreadystatechange = function () {
+            if (!this.readyState || this.readyState === "loaded" || this.readyState === "complete") {
+                var lhtml = "", checkel = true;
+                var lls = red.parse.langlinks;
+                for (var i = 0; i < lls.length; i++) {
+                    if (checkel && lls[i].lang > "el") {
+                        if (lang == "https://el.wiktionary.org/") lhtml += '<option value="https://el.wiktionary.org/" selected>Ελληνικά</option>';
+                        else lhtml += '<option value="https://el.wiktionary.org/">Ελληνικά</option>';
+
+						langlist.push("Κατηγορία:Αγγλική γλώσσα");
+                        checkel = false;
+                    }
+                    var lval = "https://" + lls[i].lang + ".wiktionary.org/";
+                    if (lval == lang) lhtml += '<option value="' + lval + '" selected>' + lls[i].autonym + '</option>';
+                    else lhtml += '<option value="' + lval + '">' + lls[i].autonym + '</option>';
+		    		langlist.push(lls[i]['*']);
+                }
+                document.getElementById("lang").innerHTML += lhtml;
+              	startA(false);
+            }
+        };
+        var spellcheck = function (data) {
+            var text = data[0];
+
+            document.getElementById('spellcheckinput').style.color = "silver";
+            document.getElementById('cc').disabled = true;
+            document.getElementById('cc').style.opacity = 0.5;
+
+            if (text != langlist[document.getElementById("lang").selectedIndex].split(':')[0] + ':' + document.getElementById('spellcheckinput').value) return;
+
+            document.getElementById('drop_down').innerHTML = "";
+            document.getElementById('drop_down').style.left = document.getElementById("spellcheckinput").offsetLeft + "px";
+            document.getElementById('drop_down').style.top = document.getElementById("spellcheckinput").offsetTop + document.getElementById("spellcheckinput").offsetHeight + "px";
+
+            if (data[1].length > 0) document.getElementById('drop_down').style.display = "block";
+
+            for (var i = 0; i < data[1].length; i++) document.getElementById('drop_down').innerHTML += "<li onclick='selectQ(this.innerHTML);'>" + data[1][i].substring(data[1][i].indexOf(':') + 1) + "</li>";
+
+            if (text.toLowerCase().trim() == data[1][0].toLowerCase()) {
+                document.getElementById('spellcheckinput').style.color = "black";
+                document.getElementById('cc').disabled = false;
+                document.getElementById('cc').style.opacity = 1;
+            }
+        };
+        var getjs = function (q) {
+            lang = document.getElementById('lang').value;
+            var scr = document.getElementById('lang').value + 'w/api.php?action=opensearch&search=' + langlist[document.getElementById("lang").selectedIndex].split(':')[0] + ':' + q + '&format=json&limit=25&callback=spellcheck';
+
+            var elem = document.createElement('script');
+            elem.setAttribute('src', scr);
+            elem.setAttribute('type', 'text/javascript');
+            document.getElementsByTagName('head')[0].appendChild(elem);
+        };
+        var randP = function (q) {
+	    	if (q != "") {
+				document.getElementById('spellcheckinput').value = q.substring(q.indexOf(':') + 1);
+				document.getElementById('spellcheckinput').style.color = "black";
+				document.getElementById('cc').disabled = false;
+				document.getElementById('cc').style.opacity = 1;
+            	document.getElementById("drop_down").style.display = 'none';
+
+				startA(true);
+				return;
+	    	}
+            lang = document.getElementById('lang').value;
+
+            var scr = lang + 'w/api.php?action=query&generator=random&grnlimit=500&grnnamespace=14&prop=categoryinfo&format=json&callback=rContent';
+			
+            var elem = document.createElement('script');
+            elem.setAttribute('src', scr);
+            elem.setAttribute('type', 'text/javascript');
+            document.getElementsByTagName('head')[0].appendChild(elem);
+            elem.onload = elem.onreadystatechange = function () {
+                if (!this.readyState || this.readyState === "loaded" || this.readyState === "complete") {
+		    		var maxl = 0;
+                    for (var key in red.query.pages) {
+                       	var length = red.query.pages[key].categoryinfo.pages;
+                       	if (length > 500) continue;
+                       	if (length > maxl) {
+                    	   query = red.query.pages[key].title;
+                           maxl = length;
+                       	}
+                       	if (length > 50) break;
+                    }
+                    document.getElementById('spellcheckinput').value = query.substring(query.indexOf(':') + 1);
+                    document.getElementById('spellcheckinput').style.color = "black";
+                    document.getElementById('cc').disabled = false;
+                    document.getElementById('cc').style.opacity = 1;
+                    startA(true);
+                }
+            };
+        };
+        document.getElementById("aF").addEventListener("click", function () {
+            document.getElementById("keyboard").style.left = event.clientX;
+            document.getElementById("keyboard").style.top = event.clientY;
+	    	document.getElementById("keyboard").focus();
+        });
+        function RtoL(q) {
+            var tds = document.getElementById("00").getElementsByTagName("TD");
+            if (q) {
+                document.getElementById("00").style.transform = "scaleX(-1)";
+                for (var i = 0; i < tds.length; i++) tds[i].style.transform = "scaleX(-1)";
+            }
+            else {
+                document.getElementById("00").style.transform = "scaleX(1)";
+                for (var i = 0; i < tds.length; i++) tds[i].style.transform = "scaleX(1)";
+            }
+		}
+        function toUint(txt) {
+		try {
+	    var uint = [];
+	    document.getElementById("wcont").textContent = txt;
+	    document.getElementById("wcont").focus();
+
+	    while (document.getElementById("wcont").textContent != "") {
+                if (document.getElementById("wcont").createTextRange) {
+                    var part = document.getElementById("wcont").createTextRange();
+                    part.move("character", 0);
+                    part.select();
+                }
+	        else if (document.getElementById("wcont").setSelectionRange) {
+                    document.getElementById("wcont").setSelectionRange(0, 0);
+                }
+	        document.execCommand("forwardDelete", false, null);
+		if (txt == document.getElementById("wcont").textContent) {
+	            document.getElementById("keyboard").focus();
+		    return [...txt];
+		}
+		uint.push(txt.replace(document.getElementById("wcont").textContent, ""));
+		txt = document.getElementById("wcont").textContent;
+	    }
+	    document.getElementById("keyboard").focus();
+	    return uint;
+		}
+		catch(err) {
+	    document.getElementById("keyboard").focus();
+	    return [...txt];
+		}
+		}
+        function startA(q) {
+	    	document.getElementById("00").style.display = "none";
+	    	document.getElementById("splash").style.display = "block";
+
+            lang = document.getElementById('lang').value;
+            query = langlist[document.getElementById("lang").selectedIndex].split(':')[0] + ':' + document.getElementById("spellcheckinput").value;
+            links = new Array();
+
+            var ahtml = "";
+            for (var m = 1; m <= 25; m++) {
+                ahtml += '<tr>';
+                for (var n = 1; n <= 25; n++) {
+                    ahtml += '<td id="' + m + '-' + n + '" class="cross"></td>';
+                }
+                ahtml += '</tr>';
+            }
+            document.getElementById('spellcheckinput').style.color = "brown";
+	    	document.getElementById("clist").innerHTML = "";
+            document.getElementById("ahelp").style.opacity = 0;
+	    	document.getElementById("ahelp").style.cursor = "pointer";
+            document.getElementById("results").innerHTML = "";
+
+	    	var dir = "&cmdir=older";
+	    	if (!q) dir = "";
+
+            var scr0 = lang + "w/api.php?format=json&action=query&titles=" + query + "&prop=info|categories&cllimit=500&clshow=!hidden&redirects=&list=categorymembers&cmtitle=" + query + "&cmnamespace=0|14&cmlimit=500&cmsort=timestamp" + dir + "&callback=rContent";
+
+            elem0 = document.createElement('script');
+            elem0.setAttribute('src', scr0);
+            elem0.setAttribute('type', 'text/javascript');
+            document.getElementsByTagName('head')[0].appendChild(elem0);
+
+            elem0.onload = elem0.onreadystatechange = function () {
+                if (!this.readyState || this.readyState === "loaded" || this.readyState === "complete") {
+	            document.getElementById("splash").style.display = "none";
+	            document.getElementById("00").innerHTML = ahtml;
+	            document.getElementById("00").style.display = "block";
+                    var tds = document.getElementById("00").getElementsByTagName("TD");
+                    for (var key in red.query.pages) {
+                        document.getElementById("00").style.transform = "scaleX(1)";
+                        for (var i = 0; i < tds.length; i++) tds[i].style.transform = "scaleX(1)";
+		        		document.getElementById("rtol").checked = false;
+
+                        document.getElementById("results").style.direction = red.query.pages[key].pagelanguagedir;
+                        document.getElementById("clist").style.direction = red.query.pages[key].pagelanguagedir;
+
+						if (red.query.pages[key].categories) {
+			    			var lls = red.query.pages[key].categories;
+			    			for (var i = 0; i < lls.length; i++) document.getElementById("clist").innerHTML += "<li title='" + lls[i].title + "' onclick='randP(\"" + lls[i].title + "\");'>⇧ " + lls[i].title.substring(lls[i].title.indexOf(':') + 1) + "</li>";
+						}
+                    }
+                    var ls = [];
+                    if (red.query.categorymembers) ls = red.query.categorymembers;
+
+                    for (var i = 0; i < ls.length; i++) {
+						if (ls[i].ns > 0) document.getElementById("clist").innerHTML += "<li title='" + ls[i].title + "' onclick='randP(\"" + ls[i].title + "\");'>⇩ " + ls[i].title.substring(ls[i].title.indexOf(':') + 1) + "</li>";
+						else if (links.indexOf(ls[i].title) < 0) links.push(ls[i].title);
+                    }
+                    var alphabet = "";
+                    var words = new Array();
+                    var redir = new Array();
+                    var wwis = new Array();
+                    var words2 = new Array();
+                    var redir2 = new Array();
+                    var wwis2 = new Array();
+                    var words3 = new Array();
+                    var redir3 = new Array();
+                    var wwis3 = new Array();
+                    var parts = links.slice(0);
+                    var sorts2 = 0;
+                    var sorts3 = 0;
+
+		    		checkU = 10;
+                    while (parts.length > 0) {
+                        var pi = Math.round(Math.random() * (parts.length - 1));
+                        var txt = parts[pi].split(',')[0].split('(')[0].replace(puncts, ' ').trim();
+
+                        var p = txt.split(" ");
+                        txt = "";
+                        for (var z = 0; z < p.length; z++) if (p[z].length > 1 && p[z].length >= txt.length && p[z] == p[z].replace(/[0-9/\u00A0-\u00BF]/g, '')) txt = p[z];
+
+                        if (txt != "" && alphabet.indexOf(txt.substring(0, txt.length / 2 + 1).toLowerCase()) < 0) {
+			    			var tu = [...txt];
+			    			if (checkU > 0) {
+								tu = toUint(txt);
+								if (tu.length == [...txt].length) checkU--;
+			    			}
+			    			if (txt == tu.join('') && tu.length > 1) {
+                                alphabet += txt.toLowerCase() + "#";
+
+                                if (tu.length == 3) {
+                                    words3.push(txt);
+                                    redir3.push(parts[pi].trim());
+                                    wwis3.push(tu);
+                                    sorts3++;
+                                }
+                                else if (tu.length == 2) {
+                                    words2.push(txt);
+                                    redir2.push(parts[pi].trim());
+                                    wwis2.push(tu);
+                                    sorts2++;
+                                }
+                                else {
+                                    words.push(txt);
+                                    redir.push(parts[pi].trim());
+                                    wwis.push(tu);
+                                }
+                            }
+                        }
+                        parts.splice(pi, 1);
+                    }
+                    if (words.length < 50) {
+                        words = words.concat(words3);
+                        redir = redir.concat(redir3);
+                        wwis = wwis.concat(wwis3);
+                    }
+                    if (words.length < 50) {
+                        words = words.concat(words2);
+                        redir = redir.concat(redir2);
+                        wwis = wwis.concat(wwis2);
+                    }
+                    var repeat = 10;
+                    var tries = Math.ceil(words.length / 10);
+		    		if (tries > 9) tries = 9;
+		    		document.getElementById("ahelp").innerHTML = "🔓<br />" + tries;
+
+                    var wordi, word, x, anagr, horiz;
+                    var backup = new Array();
+                    var matrix = new Array();
+
+                    function american() {
+                        word = wwis.slice(0);
+                        x = word.length - 1;
+                        for (var i = 0; i < 25; i++) {
+                            var mat0 = new Array();
+                            for (var j = 0; j < 25; j++) mat0.push("");
+                            matrix[i] = mat0;
+                        }
+                        do {
+                            wordi = Math.round(Math.random() * x);
+                        }
+                        while (word[wordi].length > 25 - 2);
+                        var y1 = Math.round(Math.random() * (25 - 5)) + 2;
+                        var y2 = Math.round(Math.random() * (25 - 2 - word[wordi].length)) + 1;
+                        for (i = 0; i < word[wordi].length; i++) {
+                            matrix[y1][y2 + i] = word[wordi][i];
+                        }
+                        word[wordi] = word[x];
+                        x--;
+                        var time = 5 * 25;
+                        while (x > 0 & time > 0) {
+                            time--;
+                            wordi = Math.round(Math.random() * x);
+                            if (word[wordi].length < 25 - 1) {
+                                var sums = [0, 0];
+                                var sumb = 0;
+                                var suma;
+                                for (j = 1; j < 25 - word[wordi].length; j++) {
+                                    for (k = 1; k < 25 - 1; k++) {
+                                        suma = 0; if (matrix[j - 1][k] == "") {
+                                            for (l = 0; l < word[wordi].length; l++) {
+                                                if (matrix[j + l][k] != "") {
+                                                    if (matrix[j + l][k] == word[wordi][l]) { suma++; } else { suma -= 100; break; }
+                                                }
+                                                else {
+                                                    if (matrix[j + l][k + 1] != "") { suma -= 10; }
+                                                    if (matrix[j + l][k - 1] != "") { suma -= 10; }
+                                                }
+                                            }
+                                            if (matrix[j + word[wordi].length][k] != "") { suma -= 100; }
+                                        }
+                                        if (suma >= sumb) { sums[0] = j; sums[1] = k; sumb = suma; }
+                                    }
+                                }
+                                if (sumb > 0) {
+                                    for (i = 0; i < word[wordi].length; i++) {
+                                        matrix[sums[0] + i][sums[1]] = word[wordi][i];
+                                    }
+                                    word[wordi] = word[x];
+                                    x--;
+                                }
+                            }
+                            else {
+                                word[wordi] = word[x];
+                                x--;
+                            }
+                            wordi = Math.round(Math.random() * x);
+                            if (word[wordi].length < 25 - 1) {
+                                var sums = [0, 0];
+                                var sumb = 0;
+                                var suma;
+                                for (j = 1; j < 25 - 1; j++) {
+                                    for (k = 1; k < 25 - word[wordi].length; k++) {
+                                        suma = 0;
+                                        if (matrix[j][k - 1] == "") {
+                                            for (l = 0; l < word[wordi].length; l++) {
+                                                if (matrix[j][k + l] != "") {
+                                                    if (matrix[j][k + l] == word[wordi][l]) { suma++; } else { suma -= 100; break; }
+                                                }
+                                                else {
+                                                    if (matrix[j + 1][k + l] != "") { suma -= 10; }
+                                                    if (matrix[j - 1][k + l] != "") { suma -= 10; }
+                                                }
+                                            }
+                                            if (matrix[j][k + word[wordi].length] != "") { suma -= 100; }
+                                        }
+                                        if (suma >= sumb) { sums[0] = j; sums[1] = k; sumb = suma; }
+                                    }
+                                }
+                                if (sumb > 0) {
+                                    for (i = 0; i < word[wordi].length; i++) {
+                                        matrix[sums[0]][sums[1] + i] = word[wordi][i];
+                                    }
+                                    word[wordi] = word[x];
+                                    x--;
+                                }
+                            }
+                            else { word[wordi] = word[x]; x--; }
+                        }
+                        if (repeat == 10) backup = matrix.slice(0);
+                        else {
+                            var count1 = 0, count2 = 0;
+                            for (j = 1; j <= 25; j++) {
+                                for (k = 1; k <= 25; k++) {
+                                    if (matrix[j - 1][k - 1] != "") count1++;
+                                    if (backup[j - 1][k - 1] != "") count2++;
+                                }
+                            }
+                            if (count1 > count2) backup = matrix.slice(0);
+                        }
+                        if (repeat > 0) { repeat--; american(); }
+                        else {
+			    			matrix = backup.slice(0);
+                            for (j = 1; j <= 25; j++) {
+                                for (k = 1; k <= 25; k++) {
+                                    if (matrix[j - 1][k - 1] != "") {
+										document.getElementById(j + "-" + k).style.background = "lightgray";
+				        				document.getElementById(j + "-" + k).style.cursor = "pointer";
+				    				}
+                                    else {
+                                        document.getElementById(j + "-" + k).style.background = "white";
+                                        document.getElementById(j + "-" + k).style.width = "1px";
+                                        document.getElementById(j + "-" + k).style.height = "1px";
+                                    }
+                                }
+                            }
+						}
+                    }
+                    function progress() {
+                        for (j = 1; j <= 25; j++) {
+                            for (k = 1; k <= 25; k++) {
+                                if (document.getElementById(j + "-" + k).style.backgroundColor != "white") {
+                                    var prosor = document.getElementById(j + "-" + k).textContent;
+                                    if (prosor.normalize('NFD').replace(/[\u0300-\u036f]/g, "").toLowerCase() != matrix[j - 1][k - 1].normalize('NFD').replace(/[\u0300-\u036f]/g, "").toLowerCase()) return;
+                                }
+                            }
+                        }
+						setTimeout(function () { document.getElementById("aF").style.opacity = 0.5; }, 1000);
+						setTimeout(function () { document.getElementById("congrats").style.display = "block"; }, 2000);
+						setTimeout(function () { document.getElementById("congrats").style.display = "none"; }, 4500);
+						setTimeout(function () { document.getElementById("aF").style.opacity = 1; }, 5000);
+                    }
+                    var aClick = function (e) {
+						if (tries == 0) return;
+						tries--;
+                        for (j = 1; j <= 25; j++) {
+                            for (k = 1; k <= 25; k++) {
+                                if (document.getElementById(j + "-" + k).style.backgroundColor == "cadetblue") {
+                                    var prosor = document.getElementById(j + "-" + k).textContent;
+                                    document.getElementById(j + "-" + k).textContent = matrix[j - 1][k - 1];
+                                }
+                            }
+                        }
+						if (tries == 0) {
+			    			document.getElementById("ahelp").style.cursor = "not-allowed";
+			    			document.getElementById("ahelp").innerHTML = "🔒";
+						}
+		        		else document.getElementById("ahelp").innerHTML = "🔓<br />" + tries;
+						progress();
+                    };
+                    var el = document.getElementById('ahelp'), elClone = el.cloneNode(true);
+                    el.parentNode.replaceChild(elClone, el);
+                    document.getElementById("ahelp").addEventListener('click', aClick);
+
+                    function clearA() {
+                        anagr = "";
+                        for (j = 1; j <= 25; j++) {
+                            for (k = 1; k <= 25; k++) {
+                                if (document.getElementById(j + "-" + k).style.backgroundColor == "cadetblue") document.getElementById(j + "-" + k).style.background = "lightgray";
+                            }
+                        }
+                    }
+                    american();
+                    window.stop();
+
+                    var cells = document.getElementById("00").getElementsByTagName("TD");
+                    for (var i = 0; i < cells.length; i++) {
+                        el = cells[i];
+                        elClone = el.cloneNode(true);
+                        el.parentNode.replaceChild(elClone, el);
+                        cells[i].addEventListener('click', function (event) {
+                            event = event || window.event;
+                            var ro = event.target.id.split("-")[0];
+                            var co = event.target.id.split("-")[1];
+
+	                    	document.getElementById("keyboard").style.left = event.clientX;
+	                    	document.getElementById("keyboard").style.top = event.clientY;
+	                    	document.getElementById("keyboard").focus();
+
+                            if (!document.getElementById(ro + "-" + co) || document.getElementById(ro + "-" + co).style.backgroundColor != "lightgray") return false;
+                            clearA();
+			    			document.getElementById("ahelp").style.opacity = 1;
+                            document.getElementById("results").innerHTML = "";
+
+			    			var offW = document.getElementById('aF').offsetWidth - document.getElementById('00').offsetWidth;
+			    			if (offW < 100) document.getElementById('results').style.width = document.getElementById('aF').offsetWidth + "px";
+			    			else document.getElementById('results').style.width = offW - 55 + "px";
+
+                            while (document.getElementById(ro + "-" + co).style.backgroundColor != "white") co--;
+                            co++;
+
+                            if (co < event.target.id.split("-")[1] || document.getElementById(ro + "-" + (co + 1)).style.backgroundColor != "white") {
+                                while (document.getElementById(ro + "-" + co).style.backgroundColor != "white") {
+                                    document.getElementById(ro + "-" + co).style.background = "cadetblue";
+				    				document.getElementById(ro + "-" + co).textContent = "";
+                                    anagr += matrix[ro - 1][co - 1];
+                                    co++;
+                                }
+                                co--;
+                                horiz = true;
+
+                                showResult(redir[words.indexOf(anagr)]);
+                            }
+                            else {
+                                while (document.getElementById(ro + "-" + co).style.backgroundColor != "white") ro--;
+                                ro++;
+
+                                if (ro < event.target.id.split("-")[0] || document.getElementById((ro + 1) + "-" + co).style.backgroundColor != "white") {
+                                    while (document.getElementById(ro + "-" + co).style.backgroundColor != "white") {
+                                        document.getElementById(ro + "-" + co).style.background = "cadetblue";
+				        				document.getElementById(ro + "-" + co).textContent = "";
+                                        anagr += matrix[ro - 1][co - 1];
+                                        ro++;
+                                    }
+                                    horiz = false;
+
+                                    showResult(redir[words.indexOf(anagr)]);
+                                }
+                            }
+			    			document.getElementById("keyboard").value = "";
+	                    	document.getElementById("keyboard").focus();
+                        });
+                    }
+                    function showResult(theUrl) {
+                        var scr1 = lang + "w/api.php?format=json&action=query&titles=" + theUrl.split("#")[0].split("+")[0] + "&prop=extracts&callback=rContent";
+
+                        var elem1 = document.createElement("script");
+                        elem1.setAttribute("src", scr1);
+                        elem1.setAttribute("type", "text/javascript");
+                        document.getElementsByTagName("head")[0].appendChild(elem1);
+                        elem1.onload = elem1.onreadystatechange = function () {
+                            if (!this.readyState || this.readyState === "loaded" || this.readyState === "complete") {
+                                var extra = "";
+                                for (var key in red.query.pages) {
+                                    if (red.query.pages[key].extract) extra = red.query.pages[key].extract;
+                                }
+                                document.getElementById("wcont").innerHTML = extra;
+
+                                var tags = document.getElementById("wcont").getElementsByTagName("RUBY");
+                                while (tags[0]) tags[0].parentNode.removeChild(tags[0]);
+
+								tags = document.getElementById("wcont").getElementsByTagName("LI");
+                        		for (var i = 0; i < tags.length; i++) if (tags[i].innerText == "") tags[i].style.display = "none";
+
+								tags = document.getElementById("wcont").getElementsByTagName("B");
+                        		for (var i = 0; i < tags.length; i++) if (tags[i].textContent.length < 3) tags[i].innerHTML = "...";
+
+								tags = document.getElementById("wcont").getElementsByTagName("SPAN");
+								for (var i = 0; i < tags.length; i++) tags[i].outerHTML = tags[i].innerText;
+
+								tags = document.getElementById("wcont").querySelectorAll("H3, H4, H5, H6");
+								for (var i = 0; i < tags.length; i++) if (!tags[i].nextElementSibling || tags[i].nextElementSibling.tagName.indexOf('H') == 0) tags[i].style.display = "none";
+
+                                var output = "", result = document.getElementById("wcont").innerHTML.replace(/<\/b><b>/g, "").replace(/>/g, "> ").replace(/</g, " <").replace(/\\"/g, "'").replace(/&nbsp;/g, " ");
+
+                                var reg = new RegExp(anagr, "gi");
+                                var aa = anagr.normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(puncts, "").toLowerCase();
+                                var fill = "";
+                                for (var f = 0; f < aa.length; f++) fill += "_";
+
+                                var outSplits = result.trim().split(" ");
+                                for (var k = 0; k < outSplits.length; k++) {
+				    outSplits[k] = outSplits[k].trim();
+                                    if (outSplits[k].replace(puncts, "").replace(/\\(.)/g, "").replace(/[</\\>]/g, "").length <= 1) {
+                                        output += outSplits[k] + " ";
+                                        continue;
+                                    }
+                                    var bb = outSplits[k].normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(puncts, "").replace(/[\u200b]/g, '').toLowerCase();
+                                    if (aa == bb || aa == bb.replace(/[\u0591-\u05C7]/g, '').replace(/[\u064B-\u065B]/g, '')) output += fill + " ";
+                                    else output += outSplits[k].replace(reg, "...") + " ";
+                                }
+                                document.getElementById("wcont").innerHTML = output.replace(/\s\/(.*?)\//g, " ...").replace(/\s\[(.*?)\]/g, " ...").replace(/> /g, ">").replace(/ </g, "<").replace(/&amp;/g, '&');
+
+                                document.getElementById("results").innerHTML = document.getElementById("wcont").innerHTML;
+								document.getElementById("results").scrollTop = 0;
+
+								tags = document.getElementById("wcont").getElementsByTagName("*");
+                        		for (var i = 0; i < tags.length; i++) if (tags[i].tagName.indexOf("H") == 0 || tags[i].style.display == "none") { tags[i].remove(); i--; }
+
+                                if (document.getElementById("wcont").innerText.replace(/\s/g, "").replace(/\./g, "").replace(/_/g, "").replace(puncts, "").length < 5) {
+                                    var ngr = toUint(anagr);
+                                    var aaa = "";
+                        	    	for (var j = 0; j < ngr.length; j++) if (Math.random() < 0.5) aaa += ngr[j]; else aaa += "_";
+                                    document.getElementById("results").innerHTML += "<h3>" + aaa + "</h3>";
+                                }
+                            }
+                        };
+                    }
+ 		    		var old_e = document.getElementById("keyboard");
+		    		var new_e = old_e.cloneNode(true);
+		    		old_e.parentNode.replaceChild(new_e, old_e);
+                    
+		    		document.getElementById("keyboard").addEventListener("keydown", function (event) {
+                        event = event || window.event;
+                        var KeyID = event.keyCode;
+						if (KeyID === 9) event.preventDefault();
+						else if (KeyID !== 8) {
+			    			if (document.getElementById("keyboard").value.length >= anagr.length) event.preventDefault();
+						}
+                    });
+                    document.getElementById("keyboard").addEventListener("keyup", function (event) {
+                        event = event || window.event;
+                        var KeyID = event.keyCode;
+						var count = 0;
+						var input = document.getElementById("keyboard").value;
+						var tu = [...input];
+						if (checkU > 0) tu = toUint(input);
+
+                        for (var j = 1; j <= 25; j++) {
+                            for (var k = 1; k <= 25; k++) {
+                                if (document.getElementById(j + "-" + k).style.backgroundColor == "cadetblue") {
+                                    if (count >= tu.length) document.getElementById(j + "-" + k).textContent = "";
+                                    else document.getElementById(j + "-" + k).textContent = tu[count];
+				    				count++;
+                                }
+                            }
+                        }
+						progress();
+                    });
+                }
+            };
+        }
+    </script>
+</body>
+</html>
