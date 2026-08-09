@@ -2,7 +2,7 @@
 <head>
     <meta charset="utf8">
     <title>WikiCros</title>
-    <link rel="icon" href="icons/editor.png" />
+    <link rel="icon" href="../icons/editor.png" />
     <style>
         table {
             float: left;
@@ -127,7 +127,7 @@
         <input style="width:25em;height:100%;padding-right:25px" id="spellcheckinput" onkeyup="getjs(this.value);" type="text" />
         <span title="RANDOM" style="margin-left:-25px;margin-right:25px;cursor:pointer" onclick="randP('');">↻</span>
 	↨<input title="SIZE" style="width:3em;height:100%" id="gridS" value="23" maxlength="2" type="text" />
-        <button type="button" id="cc" title="CRISS-CROSS" onclick="httpGet(1);"  style="color:orange;background-image:url('icons/editor.png')">_</button>
+        <button type="button" id="cc" title="CRISS-CROSS" onclick="httpGet(1);"  style="color:orange;background-image:url('../icons/editor.png')">_</button>
         <button type="button" id="ws" title="WORD SEARCH" onclick="httpGet(0);">🔎</button>
 	&nbsp;<input type="range" id="fsize" min="6" max="20" value="12" onchange="changeSize();">A
 	<button type="button" title="WORD CUT" style="font-size:large;float:right" disabled>✂<input type="checkbox" id="ebutton" onclick="toggle();" /></button>
@@ -344,7 +344,7 @@
             document.getElementById('clues').innerHTML = "";
             document.getElementById('checks').innerHTML = "";
             document.getElementById("results").value = "";
-            document.getElementById('00').innerHTML = '<img style="opacity:0.1;width:' + gsize * 20 + 'px" src="icons/editor.png" />';
+            document.getElementById('00').innerHTML = '<img style="opacity:0.1;width:' + gsize * 20 + 'px" src="../icons/editor.png" />';
 
             links = new Array();
             stops = new Array();
@@ -404,7 +404,7 @@
             document.getElementById('clues').innerHTML = "";
             document.getElementById('checks').innerHTML = "";
             document.getElementById("results").value = "";
-            document.getElementById('00').innerHTML = '<img style="opacity:0.1;width:' + gsize * 20 + 'px" src="icons/editor.png" />';
+            document.getElementById('00').innerHTML = '<img style="opacity:0.1;width:' + gsize * 20 + 'px" src="../icons/editor.png" />';
 
             placehold = 1;
             if (document.getElementById('aF').style.display == 'block') {
