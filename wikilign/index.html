@@ -1,0 +1,568 @@
+<html>
+<head>
+    <meta charset="utf8">
+    <title>WikiLign</title>
+    <link rel="icon" href="icon/wikilign.png" />
+    <style>
+	a {
+	    pointer-events: none;
+	    text-decoration: none;
+	}
+	.year {
+	    width: 200px;
+	    cursor: default;
+	    text-align: center;
+	    text-shadow: 1px 1px silver;
+	    white-space: normal;
+	    word-wrap: break-word;
+	    position: absolute;
+	    top: 50px;
+	}
+	.card {
+	    width: 200px;
+	    padding: 1em;
+	    border: dotted black 1px;
+	    border-radius: 25px;
+	    font-size: small;
+	    cursor: grab;
+	    position: absolute;
+	    top: 110px;
+	}
+        #ng {
+	    background-image: url('icon/wikilign.png');
+            background-color: white;
+            background-repeat: no-repeat;
+            background-size: contain;
+            height: 100%;
+        }
+	#slider {
+	    appearance: none;
+	    width: 100px;
+	    height: 10px;
+	    outline: none;
+	}
+	#splash {
+	    text-align: center;
+	    padding-top: 10%;
+	    display: none;
+	    opacity: 0;
+	}
+        #drop_down {
+            padding: 1em;
+            position: absolute;
+            display: none;
+            background: lavender;
+            cursor: pointer;
+            list-style-type: none;
+            box-shadow: 5px 5px 3px 0px rgba(0,0,0,0.5);
+        }
+        #congrats {
+            text-shadow: 10px 10px 5px rgba(0,0,0,0.5);
+            font-size: 300px;
+            color: darkolivegreen;
+            position: absolute;
+            top: 175px;
+            left: 400px;
+	    display: none;
+        }
+    </style>
+    <script type="text/javascript">cookieChoices = {};</script>
+</head>
+<body onscroll="document.getElementById('gui').style.left=(document.body.scrollLeft+10)+'px';">
+    <div id="wcont" style="display:none"></div>
+    <div id="gui" style="height:35px;position:absolute;left:10px;top:10px;min-width:900px;white-space:nowrap;">
+        <select style="height:100%" id="lang" onchange="document.getElementById('spellcheckinput').value=queries[document.getElementById('lang').selectedIndex];refresh(0);"></select>
+        <input style="width:25em;height:100%" id="spellcheckinput" onkeyup="getjs(event);" type="text" />
+	<input type="number" title="#CARDS" style="width:3em;height:100%;cursor:default" id="cards" value="4" min="2" max="9" />
+        <button type="button" id="ng" title="NEW GAME" onclick="refresh(1);">&nbsp;&nbsp;&nbsp;</button>
+	<small id="fdate" style="color:silver;font-weight:bolder;margin-left:50px"></small>
+	<input type="range" id="slider" min="0" style="appearance:none;background:silver;border:solid white 3px;opacity:0;width:50px" onchange="this.title=tlines[this.value].split('|')[1];" />
+	<small id="ldate" style="color:silver;font-weight:bolder"></small>
+    </div>
+    <div id="splash" style="width:100%"><img src="icon/wikilign.png" style="width:20%" onload="this.parentNode.style.opacity=1" /><br /><h1 id="loader" style="color:silver"></h1></div>
+    <div id="years"></div>
+    <div id="texts"></div>
+    <ul id="drop_down"></ul>
+    <span id="congrats">✓</span>
+    <script type="text/javascript">
+        var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        var colors = ["cadetblue", "indianred", "goldenrod", "seagreen", "tan"];
+        var newDate = new Date(), queries = new Array();
+        var query = months[newDate.getMonth()] + " " + parseInt(newDate.toDateString().split(' ')[2]);
+	var tlines, tls, level, count, dragid, offset, startp, left, touch;
+	var tslice, links, content, used, ncards, rdate;
+	var source = "";
+
+        function selectQ(q) {
+            document.getElementById("spellcheckinput").value = q;
+            document.getElementById('spellcheckinput').style.color = "black";
+	    refresh(0);
+        }
+        var red, rContent = function (data) {
+            red = JSON.parse(JSON.stringify(data));
+        };
+        var scr = "https://en.wikipedia.org/w/api.php?format=json&action=query&titles=" + query + "&prop=langlinks|info&llprop=autonym&lllimit=500&callback=rContent";
+
+        var elem = document.createElement('script');
+        elem.setAttribute('src', scr);
+        elem.setAttribute('type', 'text/javascript');
+        document.getElementsByTagName('head')[0].appendChild(elem);
+
+        elem.onload = elem.onreadystatechange = function () {
+            if (!this.readyState || this.readyState === "loaded" || this.readyState === "complete") {
+                var lhtml = '<option value="https://en.wikipedia.org/" selected>English</option>';
+		queries.push(query);
+
+               	for (var key in red.query.pages) {
+		    var title = red.query.pages[key].title;
+               	    for (var k in red.query.pages[key].langlinks) {
+			var lls = red.query.pages[key].langlinks[k];
+                        var lval = "https://" + lls.lang + ".wikipedia.org/";
+                        lhtml += '<option value="' + lval + '">' + lls.autonym + '</option>';
+			queries.push(lls['*']);
+		    }
+                }
+                document.getElementById("lang").innerHTML += lhtml;
+		refresh(0);
+            }
+        };
+        document.getElementById("spellcheckinput").value = query;
+
+        var spellcheck = function (data) {
+            var text = data[0];
+
+            document.getElementById('spellcheckinput').style.color = "silver";
+            document.getElementById('ng').disabled = true;
+            document.getElementById('ng').style.opacity = 0.25;
+
+            if (text != document.getElementById('spellcheckinput').value)
+                return;
+
+            document.getElementById('drop_down').innerHTML = "";
+            document.getElementById('drop_down').style.left = document.getElementById("spellcheckinput").offsetLeft + "px";
+            document.getElementById('drop_down').style.top = document.getElementById("spellcheckinput").offsetTop + document.getElementById("spellcheckinput").offsetHeight + "px";
+
+            if (data[1].length > 0) document.getElementById('drop_down').style.display = "block";
+
+            for (var i = 0; i < data[1].length; i++) document.getElementById('drop_down').innerHTML += "<li onclick='selectQ(this.innerHTML);'>" + data[1][i].substring(data[1][i].indexOf(':') + 1) + "</li>";
+
+            if (text == data[1][0]) {
+                document.getElementById('spellcheckinput').style.color = "black";
+                document.getElementById('ng').disabled = false;
+                document.getElementById('ng').style.opacity = 1;
+            }
+        };
+        function getjs(event) {
+            var q = document.getElementById('spellcheckinput').value;
+
+            if (event.keyCode === 13 && document.getElementById('spellcheckinput').style.color == "black") {
+	        refresh(0);
+                return;
+            }
+            scr = document.getElementById("lang").value + 'w/api.php?action=opensearch&search=' + q + '&format=json&limit=25&callback=spellcheck';
+
+            elem = document.createElement('script');
+            elem.setAttribute('src', scr);
+            elem.setAttribute('type', 'text/javascript');
+            document.getElementsByTagName('head')[0].appendChild(elem);
+	}
+	function refresh(q) {
+            level = document.getElementById("cards").value;
+
+            document.getElementById("drop_down").style.display = 'none';
+            document.getElementById("spellcheckinput").disabled = true;
+            document.getElementById("lang").disabled = true;
+            document.getElementById("cards").disabled = true;
+            document.getElementById("ng").disabled = true;
+            document.getElementById('ng').style.opacity = 0.25;
+
+	    document.getElementById('texts').style.display = 'none';
+	    document.getElementById('years').style.display = 'none';
+            document.getElementById('loader').innerHTML = "0%";
+	    document.getElementById('splash').style.display = 'block';
+
+	    var p = document.getElementById("texts").children;
+            while (p[0]) p[0].parentNode.removeChild(p[0]);
+	    p = document.getElementById("years").children;
+            while (p[0]) p[0].parentNode.removeChild(p[0]);
+
+	    if (q) {
+		if (tlines.length <= 1) {
+                    document.getElementById("splash").style.display = 'none';
+                    document.getElementById("spellcheckinput").disabled = false;
+            	    document.getElementById("cards").disabled = false;
+                    document.getElementById("lang").disabled = false;
+                    document.getElementById("ng").disabled = false;
+            	    document.getElementById('ng').style.opacity = 1;
+
+		    alert("NO CARDS FOR:\n\n" + query);
+		    return;
+		}
+	        var rnd = Math.floor(Math.random() * (50 / level));
+	        document.getElementById('loader').innerHTML = rnd + "%";
+
+	        used = new Array();
+	        tls = new Array();
+	        ncards = 0;
+	        count = 0;
+
+		document.getElementById("fdate").innerHTML = tlines[0].split('|')[1];
+		document.getElementById("ldate").innerHTML = tlines[tlines.length - 1].split('|')[1];
+		document.getElementById("slider").max = tlines.length - 1;
+	    	document.getElementById('slider').style.opacity = 1;
+
+		rdate = document.getElementById("slider").value;
+		if (rdate < 3) rdate = 3;
+		if (rdate > tlines.length - 5) rdate = tlines.length - 5;
+		if (rdate < 0) rdate = Math.round(tlines.length / 2);
+
+		document.getElementById("slider").title = tlines[rdate].split('|')[1];
+		tslice = tlines.slice(0);
+		chronicle();
+	    }
+	    else start();
+	}
+	function loading(q) {
+	    var rnd = Math.random() * (75 / level);
+	    document.getElementById('loader').innerHTML = Math.floor(++ncards * 100 / level + rnd) + "%";
+
+	    if (q || ncards == level) {
+	        document.getElementById('loader').innerHTML = "100%";
+                document.getElementById("spellcheckinput").disabled = false;
+                document.getElementById("cards").disabled = false;
+                document.getElementById("lang").disabled = false;
+                document.getElementById("ng").disabled = false;
+                document.getElementById('ng').style.opacity = 1;
+
+	        var cards = document.getElementsByClassName("card");
+                for (var i = 0; i < cards.length; i++) cards[i].style.opacity = 1;
+
+	        setTimeout(function () {
+                    document.getElementById("splash").style.display = 'none';
+	            document.getElementById('years').style.display = 'block';
+	            document.getElementById('texts').style.display = 'block';
+		}, 1000);
+	    }
+	}
+        function backlinks(cont, q) {
+            var scrb = document.getElementById("lang").value + "w/api.php?format=json&action=query&generator=backlinks&gbltitle=" + query + "&gblnamespace=0&gbllimit=500" + cont + "&prop=langlinks&lllang=en&lllimit=500&callback=rContent";
+
+            if (q) scrb = document.getElementById("lang").value + "w/api.php?format=json&action=query&generator=links&titles=" + query + "&gplnamespace=0&gpllimit=500" + cont + "&prop=langlinks&lllang=en&lllimit=500&callback=rContent";
+
+            var elemb = document.createElement('script');
+            elemb.setAttribute('src', scrb);
+            elemb.setAttribute('type', 'text/javascript');
+            document.getElementsByTagName('head')[0].appendChild(elemb);
+
+            elemb.onload = elemb.onreadystatechange = function () {
+            	if (!this.readyState || this.readyState === "loaded" || this.readyState === "complete") {
+		if (red.query !== undefined) {
+               	    for (var key in red.query.pages) {
+		       	var b = red.query.pages[key].title;
+			var index = links.indexOf(b);
+		    	links.push(b);
+			if (index >= 0) continue;
+
+			if (q) {
+		            var node = document.getElementById("wcont").querySelectorAll("a[title='" + b.replace(/'/g, "\\'") + "']");
+		            if (node.length == 0) continue;
+
+                            for (var n = 0; n < node.length; n++) {
+			        var txt = node[n].parentNode;
+		    		if (txt.tagName != "LI" && txt.tagName != "P") txt = txt.parentNode;
+		    		if ((txt.tagName == "LI" || txt.tagName == "P") && txt.textContent.length < 1000) break;
+		    	    }
+		            if (n == node.length) continue;
+			}
+		    	if (red.query.pages[key].langlinks === undefined) {
+			    if (b == parseInt(b) && b > 10 && b < 3000) {
+				var a = (parseInt(b) + 1000) + "|" + b;
+				tlines.push(a + "|" + q + "|" + b);
+			    }
+			    continue;
+			}
+			var l, ls = new Array();
+			for (var k in red.query.pages[key].langlinks) l = red.query.pages[key].langlinks[k]['*'];
+
+		    	if (l.indexOf(' ') < 0) {
+			    if (l == parseInt(l) && l > 1000 && l < 3000) {
+				var a = (parseInt(l) + 1000) + "|" + b;
+				tlines.push(a + "|" + q + "|" + l);
+			    }
+			    continue;
+			}
+			else ls = l.split(' ');
+
+			if (ls.length != 2) continue;
+
+		    	if (months.indexOf(ls[0]) >= 0 && !isNaN(ls[1]) && ls[1] > 31) {
+			    var ix = "" + months.indexOf(ls[0]);
+			    if (ix.length == 1) ix = "0" + ix;
+			    var a = (parseInt(ls[1]) + 1000) + ix + "|" + b;
+			    tlines.push(a + "|" + q + "|" + ls[1]);
+			}
+		    	else if (!isNaN(ls[0]) && ls[1] == "BC") {
+			    var a = "0" + (1000000 - parseInt(ls[0])) + "|" + b;
+			    tlines.push(a + "|" + q + "|" + ls[0]);
+			}
+		    	else if (ls[0] == "AD" && !isNaN(ls[1])) {
+			    var a = (parseInt(ls[1]) + 1000) + "|" + b;
+			    tlines.push(a + "|" + q + "|" + ls[1]);
+			}
+		    }}
+		    if (red.continue !== undefined && q) backlinks("&gplcontinue=" + red.continue.gplcontinue, true);
+
+		    else if (red.continue !== undefined && !q) backlinks("&gblcontinue=" + red.continue.gblcontinue, false);
+
+		    else if (!q || tlines.length > document.getElementById("cards").max) {
+			tlines.sort();
+                        for (var i = tlines.length - 1; i > 0; i--) {
+			    if (tlines[i - 1].split('|')[0].indexOf(tlines[i].split('|')[0]) == 0) tlines.splice(i, 1);
+			}
+			refresh(1);
+		    }
+		    else backlinks("", false);
+		}
+            };
+	}
+        function background(t, c, r1, r2) {
+            var scri = document.getElementById("lang").value + "w/api.php?format=json&action=query&titles=" + t + "&prop=pageimages|info&pilimit=50&pithumbsize=300&callback=rContent";
+
+            var elemi = document.createElement('script');
+            elemi.setAttribute('src', scri);
+            elemi.setAttribute('type', 'text/javascript');
+            document.getElementsByTagName('head')[0].appendChild(elemi);
+
+            elemi.onload = elemi.onreadystatechange = function () {
+            	if (!this.readyState || this.readyState === "loaded" || this.readyState === "complete") {
+		    var isrc;
+               	    for (var key in red.query.pages) {
+			document.getElementById("l" + c).parentNode.style.direction = red.query.pages[key].pagelanguagedir;
+
+			if (red.query.pages[key].thumbnail === undefined) continue;
+
+			isrc = red.query.pages[key].thumbnail.source;
+			if (isrc === undefined || isrc.length < 25) continue;
+
+		       	if (used.indexOf(isrc) < 0 && (document.getElementById("c" + c).src == "" || links.indexOf(red.query.pages[key].title) == links.lastIndexOf(red.query.pages[key].title))) {
+		       	    document.getElementById("l" + c).innerHTML = red.query.pages[key].title.replace(r1, "<b style='color:firebrick'>{?}</b>").replace(r2, "<b style='color:firebrick'>...</b>");
+			    document.getElementById("c" + c).src = isrc;
+			    if (links.indexOf(red.query.pages[key].title) == links.lastIndexOf(red.query.pages[key].title)) break;
+			}
+		    }
+		    if (isrc !== undefined && isrc.length > 25) used.push(isrc);
+		}
+            };
+	}
+	function drag(ev) {
+	    ev.preventDefault();
+	    var target = ev.target;
+	    while (target.tagName != "DIV") target = target.parentNode;
+
+	    source = target.id;
+	    offset = ev.clientX;
+	    startp = document.getElementById(source).offsetLeft;
+
+	    if (ev.type !== "mousedown") {
+		touch = ev.targetTouches[0];
+		offset = touch.pageX;
+	    }
+	    offset -= startp;
+
+	    var cards = document.getElementsByClassName("card");
+            for (var i = 0; i < cards.length; i++) cards[i].style.opacity = 0.25;
+            target.style.opacity = 1;
+	}
+	function over(ev) {
+	    if (source == "") return;
+
+	    document.getElementById(source).style.left = (ev.clientX - offset) + "px";
+
+	    if (ev.type !== "mousemove") {
+		touch = ev.targetTouches[0];
+		document.getElementById(source).style.left = (touch.pageX - offset) + "px";
+	    }
+	    var cards = document.getElementsByClassName("year");
+            for (var i = cards.length - 1; i >= 0; i--) {
+		if (document.getElementById(source).offsetLeft > cards[i].offsetLeft - 100) {
+		    left = cards[i].offsetLeft - 10;
+		    break;
+		}
+	    }
+	}
+	function drop(ev) {
+	    var years = document.getElementsByClassName("year");
+	    if (left > years[years.length - 1].offsetLeft - 10) left = years[years.length - 1].offsetLeft - 10;
+	    document.getElementById(source).style.left = left + "px";
+
+	    var cards = document.getElementsByClassName("card");
+	    var check = false;
+
+            for (var i = 0; i < cards.length; i++) {
+		if (cards[i].id != source && cards[i].offsetLeft == document.getElementById(source).offsetLeft) {
+		    cards[i].style.left = startp + "px";
+		}
+		if (cards[i].offsetLeft != cards[i].name) check = true;
+		cards[i].style.opacity = 1;
+	    }
+	    source = "";
+	    if (check) return;
+
+            for (var i = 0; i < years.length; i++) years[i].style.opacity = 1;
+
+	    document.getElementById("texts").style.opacity = 0.5;
+	    document.getElementById("congrats").style.display = "block";
+	    setTimeout(function () { document.getElementById("congrats").style.display = "none"; }, 1000);
+	    setTimeout(function () { document.getElementById("texts").style.opacity = 1; }, 1000);
+	}
+        function chronicle() {
+	    var notenough = false;
+
+	    if (tslice.length == 0) {
+		if (tls.length <= 1) {
+                    document.getElementById("splash").style.display = 'none';
+                    document.getElementById("spellcheckinput").disabled = false;
+            	    document.getElementById("cards").disabled = false;
+                    document.getElementById("lang").disabled = false;
+                    document.getElementById("ng").disabled = false;
+            	    document.getElementById('ng').style.opacity = 1;
+
+		    alert("NO CARDS FOR:\n\n" + query);
+		    return;
+		}
+		loading(1);
+		notenough = true;
+	    }
+	    if (tls.length >= level || notenough) {
+		document.getElementById("cards").value = tls.length;
+		tls.sort();
+
+                for (var z = 0; z < tls.length; z++) {
+		    document.getElementById(tls[z].split('|')[0]).name = 235 * z + 10 + "";
+		    document.getElementById("years").innerHTML += "<h4 class='year' style='left:" + (235 * z + 20) + "px;opacity:0'>" + tls[z].split('|')[1] + "</h4>";
+		}
+		return;
+	    }
+	    var tl = -1;
+	    while (tl < 0 || tl >= tslice.length) tl = rdate - 5 + Math.floor(Math.random() * 9);
+	    rdate = tl;
+
+	    var divid = tslice[rdate].split('|');
+            var reg1 = new RegExp(divid[1], "g");
+            var reg2 = new RegExp(divid[3], "g");
+
+            var scrh = document.getElementById("lang").value + "w/api.php?format=json&action=parse&page=" + divid[1] + "&prop=text&redirects=&noimages=&mobileformat=&callback=rContent";
+            if (divid[2] == "true") scrh = document.getElementById("lang").value + "w/api.php?format=json&action=parse&page=&callback=rContent";
+
+            var elemh = document.createElement('script');
+            elemh.setAttribute('src', scrh);
+            elemh.setAttribute('type', 'text/javascript');
+            document.getElementsByTagName('head')[0].appendChild(elemh);
+
+            elemh.onload = elemh.onreadystatechange = function () {
+                if (!this.readyState || this.readyState === "loaded" || this.readyState === "complete") {
+		    var q, txt, head = "";
+		    if (divid[2] == "false") {
+			document.getElementById("wcont").innerHTML = red.parse.text['*'];
+			q = query;
+		    }
+		    else {
+			document.getElementById("wcont").innerHTML = content;
+			q = divid[1];
+		    }
+		    var node = document.getElementById("wcont").querySelectorAll("a[title='" + q.replace(/'/g, "\\'") + "']");
+		    node = Array.prototype.slice.call(node);
+		    var as = document.getElementById("wcont").getElementsByTagName("*");
+
+		    while (node.length > 0) {
+	                var n = Math.floor(Math.random() * node.length);
+			txt = node[n].parentNode;
+		    	if (txt.tagName != "LI" && txt.tagName != "P") txt = txt.parentNode;
+		    	if ((txt.tagName == "LI" || txt.tagName == "P") && txt.textContent.length < 1000) break;
+                        node.splice(n, 1);
+		    }
+		    if (node.length == 0 || txt === undefined) {
+                    	tlines.splice(tlines.indexOf(tslice[rdate]), 1);
+                    	tslice.splice(rdate, 1);
+		    	chronicle();
+			return;
+		    }
+                    var p = txt.getElementsByTagName("REF");
+                    while (p[0]) p[0].parentNode.removeChild(p[0]);
+                    p = txt.getElementsByClassName("reference");
+                    while (p[0]) p[0].parentNode.removeChild(p[0]);
+                    p = txt.getElementsByClassName("reference separada");
+                    while (p[0]) p[0].parentNode.removeChild(p[0]);
+
+                    for (var i = 0; i < as.length; i++) {
+		        if (used.indexOf(txt.textContent) >= 0) break;
+			if (as[i].tagName.indexOf('H2') == 0) {
+              head = as[i].textContent.split('[')[0].trim();
+              var kids = as[i].children;
+              if (kids.length > 0) {
+              	var kid = 0;
+              	while (kid < kids.length && kids[kid].textContent.trim() == "") kid++;
+              	if (kid < kids.length) head = kids[kid].textContent.split('[')[0].trim();
+              }
+            }
+			if (as[i] != txt) continue;
+
+			var cont = as[i].innerHTML;
+			if (cont.indexOf(head) >= 0) head = "";
+
+			var fs = cont.split("wiki/");
+			var titles = new Array();
+
+                        for (var f = 1; f < fs.length; f++) {
+		    	    var tf = fs[f].split(' title="')[1];
+
+		    	    if (tf === undefined) continue;
+		    	    tf = tf.split('"')[0];
+		    	    if (tf == parseInt(tf)) continue;
+
+			    var near = Math.min(Math.abs(cont.indexOf(tf) - cont.indexOf(q)), Math.abs(cont.indexOf(tf) - cont.lastIndexOf(q)));
+		    	    titles.push(1000 + near + "|" + tf);
+			}
+			if (titles.length > 0) {
+			    titles.sort().splice(3);
+                    	    for (var j = 0; j < titles.length; j++) titles[j] = titles[j].split('|')[1];
+			    background(titles.join("|"), count, reg1, reg2);
+			}
+			document.getElementById("texts").innerHTML += "<div id='" + divid[0] + "' class='card' style='left:" + (235 * count + 10) + "px;background-image:linear-gradient(" + colors[count % colors.length] + ", silver)' onmousedown='drag(event)' onmousemove='over(event)' onmouseup='drop(event)' ontouchstart='drag(event)' ontouchmove='over(event)' ontouchend='drop(event)'><b id='l" + count + "'>&nbsp;</b><hr /><img id='c" + count++ + "' style='width:100%' /><hr /><i>" + head.replace(reg1, "<b style='color:firebrick'>{?}</b>").replace(reg2, "<b style='color:firebrick'>...</b>") + "</i> &sdot; " + cont.replace(reg1, "<b style='color:firebrick'>{?}</b>").replace(reg2, "<b style='color:firebrick'>...</b>") + "</div>";
+
+		        tls.push(divid[0] + "|" + divid[1]);
+			used.push(txt.textContent);
+			loading(0);
+			break;
+		    }
+                    tslice.splice(rdate, 1);
+		    chronicle();
+		}
+            };
+	}
+        function start() {
+            var q = document.getElementById('spellcheckinput').value;
+
+	    tlines = new Array();
+	    links = new Array();
+
+            scr = document.getElementById("lang").value + "w/api.php?format=json&action=parse&page=" + q + "&prop=text&redirects=&noimages=&mobileformat=&callback=rContent";
+
+            elem = document.createElement('script');
+            elem.setAttribute('src', scr);
+            elem.setAttribute('type', 'text/javascript');
+            document.getElementsByTagName('head')[0].appendChild(elem);
+
+            elem.onload = elem.onreadystatechange = function () {
+                if (!this.readyState || this.readyState === "loaded" || this.readyState === "complete") {
+                    query = red.parse.title;
+		    content = red.parse.text['*'];
+		    document.getElementById("wcont").innerHTML = content;
+                    document.getElementById('spellcheckinput').value = query;
+            	    backlinks("", true);
+                }
+            };
+        }
+    </script>
+</body>
+</html>
