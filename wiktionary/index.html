@@ -2,7 +2,7 @@
 <head>
     <meta charset="utf8">
     <title>WikiCros</title>
-    <link rel="icon" href="icons/wikicros.png" />
+    <link rel="icon" href="../icons/wikicros.png" />
     <style>
         table {
             float: left;
@@ -97,7 +97,7 @@
         <select style="height:100%" id="lang" onchange="document.getElementById('spellcheckinput').value=langlist[this.selectedIndex].substring(langlist[this.selectedIndex].indexOf(':') + 1); startA(false);"></select>
         <input style="width:25em;height:100%;padding-right:25px" id="spellcheckinput" onkeyup="getjs(this.value);" type="text" value="English language" />
         <span title="RANDOM" style="margin-left:-25px;margin-right:10px;cursor:pointer" onclick="randP('');">↻</span>
-        <button type="button" id="cc" title="NEW PUZZLE" onclick="startA(false);"  style="color:cadetblue;background-image:url('icons/wikicros.png')">_</button>
+        <button type="button" id="cc" title="NEW PUZZLE" onclick="startA(false);"  style="color:cadetblue;background-image:url('../icons/wikicros.png')">_</button>
 	<button type="button" title="RIGHT TO LEFT" style="font-size:large;float:right" disabled>&crarr;<input type="checkbox" id="rtol" onclick="RtoL(this.checked);" /></button>
     </div>
     <ul id="clist"></ul>
@@ -105,7 +105,7 @@
     <table id="00"></table>
     <div id="wcont" contenteditable="true"></div>
     <div id="aF">
-	<img id="splash" src="icons/wikicros.png" style="height:75%;opacity:0.1" />
+	<img id="splash" src="../icons/wikicros.png" style="height:75%;opacity:0.1" />
         <input type="text" id="keyboard" />
         <div id="results"></div>
     </div>
