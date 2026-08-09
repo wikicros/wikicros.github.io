@@ -4,6 +4,9 @@
     <title>WikiCros</title>
     <link rel="icon" href="../icons/wikicros.png" />
     <style>
+		body {
+		    background-color: whitesmoke;
+		}
         table {
             float: left;
             border-spacing: 0;
@@ -12,7 +15,7 @@
             padding: 0;
         }
         button {
-            background-color: white;
+            background-color: whitesmoke;
             background-repeat: no-repeat;
             background-size: contain;
             height: 100%;
@@ -22,7 +25,7 @@
             text-align: center;
             width: 22px;
 	    height: 24px;
-            border: solid white 2px;
+            border: solid whitesmoke 2px;
         }
         .crypto {
             font-size: large;
@@ -689,7 +692,7 @@
 				        document.getElementById(j + "-" + k).style.cursor = "pointer";
 				    }
                                     else {
-                                        document.getElementById(j + "-" + k).style.background = "white";
+                                        document.getElementById(j + "-" + k).style.background = "whitesmoke";
                                         document.getElementById(j + "-" + k).style.width = "1px";
                                         document.getElementById(j + "-" + k).style.height = "1px";
                                     }
@@ -700,7 +703,7 @@
                     function progress() {
                         for (j = 1; j <= 25; j++) {
                             for (k = 1; k <= 25; k++) {
-                                if (document.getElementById(j + "-" + k).style.backgroundColor != "white") {
+                                if (document.getElementById(j + "-" + k).style.backgroundColor != "whitesmoke") {
                                     var prosor = document.getElementById(j + "-" + k).textContent;
                                     if (prosor.normalize('NFD').replace(/[\u0300-\u036f]/g, "").toLowerCase() != matrix[j - 1][k - 1].normalize('NFD').replace(/[\u0300-\u036f]/g, "").toLowerCase()) return;
                                 }
@@ -767,11 +770,11 @@
 			    if (offW < 100) document.getElementById('results').style.width = document.getElementById('aF').offsetWidth + "px";
 			    else document.getElementById('results').style.width = offW - 55 + "px";
 
-                            while (document.getElementById(ro + "-" + co).style.backgroundColor != "white") co--;
+                            while (document.getElementById(ro + "-" + co).style.backgroundColor != "whitesmoke") co--;
                             co++;
 
-                            if (co < event.target.id.split("-")[1] || document.getElementById(ro + "-" + (co + 1)).style.backgroundColor != "white") {
-                                while (document.getElementById(ro + "-" + co).style.backgroundColor != "white") {
+                            if (co < event.target.id.split("-")[1] || document.getElementById(ro + "-" + (co + 1)).style.backgroundColor != "whitesmoke") {
+                                while (document.getElementById(ro + "-" + co).style.backgroundColor != "whitesmoke") {
                                     document.getElementById(ro + "-" + co).style.background = "orange";
 				    document.getElementById(ro + "-" + co).textContent = "";
                                     anagr += matrix[ro - 1][co - 1];
@@ -783,11 +786,11 @@
                                 showResult(redir[words.indexOf(anagr)]);
                             }
                             else {
-                                while (document.getElementById(ro + "-" + co).style.backgroundColor != "white") ro--;
+                                while (document.getElementById(ro + "-" + co).style.backgroundColor != "whitesmoke") ro--;
                                 ro++;
 
-                                if (ro < event.target.id.split("-")[0] || document.getElementById((ro + 1) + "-" + co).style.backgroundColor != "white") {
-                                    while (document.getElementById(ro + "-" + co).style.backgroundColor != "white") {
+                                if (ro < event.target.id.split("-")[0] || document.getElementById((ro + 1) + "-" + co).style.backgroundColor != "whitesmoke") {
+                                    while (document.getElementById(ro + "-" + co).style.backgroundColor != "whitesmoke") {
                                         document.getElementById(ro + "-" + co).style.background = "orange";
 				        document.getElementById(ro + "-" + co).textContent = "";
                                         anagr += matrix[ro - 1][co - 1];
