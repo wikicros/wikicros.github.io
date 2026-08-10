@@ -444,7 +444,7 @@
 			next(_q);
 			return;
 		    }
-		    else document.getElementById("answer").innerHTML += "<button class='buttons' id='right' onclick='win(true)' style='width:46%;color:darkgoldenrod'>" + titl.substring(titl.indexOf(':') + 1) + "</button>";
+		    else document.getElementById("answer").innerHTML += "<button class='buttons' id='right' onclick='win(true)' style='width:40%;color:darkgoldenrod'>" + titl.substring(titl.indexOf(':') + 1) + "</button>";
 
 		    var wrong = "<button class='buttons' id='wrong' onclick='win(false)' style='width:48%;color:darkgoldenrod'>" + quiz[0].substring(quiz[0].indexOf(':') + 1) + "</button>";
 		    if (Math.random() < 0.5) document.getElementById("answer").innerHTML += wrong;
