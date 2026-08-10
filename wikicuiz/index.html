@@ -426,7 +426,7 @@
 		    while (count <= 3 && quiz.length > 1) {
 			var qi = 1 + Math.round(Math.random() * (quiz.length - 2));
 			if (_q) document.getElementById("quests").innerHTML += "<i style='float:right;margin-right:0.25em'>" + quiz[qi] + "</i><br />";
-			else document.getElementById("quests").innerHTML += "<button class='buttons' style='width:98%;color:cadetblue' disabled>" + quiz[qi] + "</button>";
+			else document.getElementById("quests").innerHTML += "<button class='buttons' style='width:90%;color:cadetblue' disabled>" + quiz[qi] + "</button>";
 			quizzes.push(quiz[qi]);
                        	quiz.splice(qi, 1);
 		        count++;
@@ -444,7 +444,7 @@
 			next(_q);
 			return;
 		    }
-		    else document.getElementById("answer").innerHTML += "<button class='buttons' id='right' onclick='win(true)' style='width:40%;color:darkgoldenrod'>" + titl.substring(titl.indexOf(':') + 1) + "</button>";
+		    else document.getElementById("answer").innerHTML += "<button class='buttons' id='right' onclick='win(true)' style='width:42%;color:darkgoldenrod'>" + titl.substring(titl.indexOf(':') + 1) + "</button>";
 
 		    var wrong = "<button class='buttons' id='wrong' onclick='win(false)' style='width:48%;color:darkgoldenrod'>" + quiz[0].substring(quiz[0].indexOf(':') + 1) + "</button>";
 		    if (Math.random() < 0.5) document.getElementById("answer").innerHTML += wrong;
