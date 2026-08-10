@@ -13,7 +13,6 @@
         }
         td {
             padding: 0;
-      background-color: white;
         }
         button {
             background-color: whitesmoke;
@@ -269,6 +268,7 @@
             document.getElementById('clues').style.display = "none";
             document.getElementById('checks').style.display = "none";
             document.getElementById('clist').style.display = "none";
+            document.getElementById('00').style.backgroundColor = "white";
             document.body.style.backgroundColor = "white";
             document.getElementById('print_help').style.display = "block";
             document.getElementById('print_help').style.top = document.getElementById("00").offsetTop + document.getElementById("00").offsetHeight + 75 + "px";
@@ -278,6 +278,7 @@
             window.print();
             document.getElementById('print_help').style.display = "none";
             document.body.style.backgroundColor = "whitesmoke";
+            document.getElementById('00').style.backgroundColor = "whitesmoke";
             document.getElementById('clist').style.display = "block";
             document.getElementById('checks').style.display = "block";
             document.getElementById('clues').style.display = "block";
