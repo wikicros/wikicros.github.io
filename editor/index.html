@@ -132,8 +132,8 @@
         <select style="height:100%" id="lang" onchange="document.getElementById('clist').innerHTML=''; getjs(document.getElementById('spellcheckinput').value);"></select>
         <input style="width:25em;height:100%;padding-right:25px" id="spellcheckinput" onkeyup="getjs(this.value);" type="text" />
         <span title="RANDOM" style="margin-left:-25px;margin-right:10px;cursor:pointer" onclick="randP('');">↻</span>
-        <button type="button" id="cc" title="CRISS-CROSS" onclick="httpGet(1);"  style="color:orange;background-image:url('../icons/wikicros.png')">_</button>
-	↨<input title="SIZE" style="width:3em;height:100%;margin-left:10px" id="gridS" value="23" maxlength="2" type="text" />
+        <button type="button" id="cc" title="CRISS-CROSS" onclick="httpGet(1);" style="color:orange;background-image:url('../icons/wikicros.png');margin-right:25px">_</button>
+	↨<input title="SIZE" style="width:3em;height:100%" id="gridS" value="23" maxlength="2" type="text" />
 	&nbsp;<input type="range" id="fsize" min="6" max="20" value="12" onchange="changeSize();">A
 	<button type="button" title="WORD CUT" style="font-size:large;float:right" disabled>✂<input type="checkbox" id="ebutton" onclick="toggle();" /></button>
         <button type="button" id="ws" title="WORD SEARCH" style="float:right" onclick="httpGet(0);">🔎</button>
