@@ -19,7 +19,7 @@
 	    white-space: normal;
 	    word-wrap: break-word;
 	    position: absolute;
-	    top: 50px;
+	    top: 65px;
 	}
 	.card {
 	    width: 200px;
@@ -29,7 +29,7 @@
 	    font-size: small;
 	    cursor: grab;
 	    position: absolute;
-	    top: 110px;
+	    top: 125px;
 	}
         #ng {
 	    background-image: url('../icons/wikilign.png');
@@ -53,6 +53,8 @@
         #drop_down {
             padding: 1em;
             position: absolute;
+			left: 200px;
+			top: 100px;
             display: none;
             background: silver;
             cursor: pointer;
@@ -71,9 +73,10 @@
     </style>
     <script type="text/javascript">cookieChoices = {};</script>
 </head>
-<body onscroll="document.getElementById('gui').style.left=(document.body.scrollLeft+10)+'px';">
+<body>
+	<br />
     <div id="wcont" style="display:none"></div>
-    <div id="gui" style="height:35px;position:absolute;left:10px;top:25px;width:600px;white-space:nowrap;">
+    <div style="height:35px;">
         <select style="height:100%" id="lang" onchange="document.getElementById('spellcheckinput').value=queries[document.getElementById('lang').selectedIndex];refresh(0);"></select>
         <input style="width:25em;height:100%" id="spellcheckinput" onkeyup="getjs(event);" type="text" />
 	<input type="number" title="#CARDS" style="width:3em;height:100%;cursor:default" id="cards" value="4" min="2" max="9" />
@@ -82,7 +85,6 @@
 	<input type="range" id="slider" min="0" style="appearance:none;background:silver;border:solid whitesmoke 3px;opacity:0;width:50px" onchange="this.title=tlines[this.value].split('|')[1];" />
 	<small id="ldate" style="color:silver;font-weight:bolder"></small>
     </div>
-	<br />
     <div id="splash" style="width:100%"><img src="../icons/wikilign.png" style="width:20%" onload="this.parentNode.style.opacity=1" /><br /><h1 id="loader" style="color:silver"></h1></div>
     <div id="years"></div>
     <div id="texts"></div>
@@ -143,11 +145,7 @@
                 return;
 
             document.getElementById('drop_down').innerHTML = "";
-            document.getElementById('drop_down').style.left = document.getElementById("spellcheckinput").offsetLeft + "px";
-            document.getElementById('drop_down').style.top = document.getElementById("spellcheckinput").offsetTop + document.getElementById("spellcheckinput").offsetHeight + "px";
-
             if (data[1].length > 0) document.getElementById('drop_down').style.display = "block";
-
             for (var i = 0; i < data[1].length; i++) document.getElementById('drop_down').innerHTML += "<li onclick='selectQ(this.innerHTML);'>" + data[1][i].substring(data[1][i].indexOf(':') + 1) + "</li>";
 
             if (text == data[1][0]) {
