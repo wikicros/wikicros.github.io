@@ -54,7 +54,7 @@
             padding: 1em;
             position: absolute;
 			left: 220px;
-			top: 60px;
+			top: 50px;
             display: none;
             background: silver;
             cursor: pointer;
@@ -76,7 +76,7 @@
 <body>
 	<br />
     <div id="wcont" style="display:none"></div>
-    <div style="width:750px;height:35px;">
+    <div style="width:900px;height:35px;">
         <select style="height:100%" id="lang" onchange="document.getElementById('spellcheckinput').value=queries[document.getElementById('lang').selectedIndex];refresh(0);"></select>
         <input style="width:25em;height:100%" id="spellcheckinput" onkeyup="getjs(event);" type="text" />
 	<input type="number" title="#CARDS" style="width:3em;height:100%;cursor:default" id="cards" value="4" min="2" max="9" />
